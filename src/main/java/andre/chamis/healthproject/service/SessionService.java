@@ -8,7 +8,6 @@ import andre.chamis.healthproject.domain.session.property.SessionProperties;
 import andre.chamis.healthproject.domain.session.repository.SessionRepository;
 import andre.chamis.healthproject.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;

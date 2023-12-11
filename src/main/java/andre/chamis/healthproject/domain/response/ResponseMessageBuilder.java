@@ -1,7 +1,7 @@
 package andre.chamis.healthproject.domain.response;
 
-import andre.chamis.socialnetwork.context.ServiceContext;
-import andre.chamis.socialnetwork.domain.exception.ExceptionWithStatusCode;
+import andre.chamis.healthproject.context.ServiceContext;
+import andre.chamis.healthproject.domain.exception.ExceptionWithStatusCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
