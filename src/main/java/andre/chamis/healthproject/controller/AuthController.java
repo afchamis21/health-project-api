@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @NonAuthenticated
-@RequestMapping("auth/")
+@RequestMapping("auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthorizationService authorizationService;
@@ -34,7 +34,7 @@ public class AuthController {
      * @return ResponseEntity containing the generated tokens and a status code.
      */
     @PostMapping("login")
-    public ResponseEntity<ResponseMessage<TokensDTO>> login(@RequestBody LoginDTO loginDTO)  {
+    public ResponseEntity<ResponseMessage<TokensDTO>> login(@RequestBody LoginDTO loginDTO) {
         TokensDTO tokensDTO = authorizationService.authenticateUser(loginDTO);
         return ResponseMessageBuilder.build(tokensDTO, HttpStatus.CREATED);
     }
@@ -46,7 +46,7 @@ public class AuthController {
      * @return ResponseEntity containing the refreshed tokens and a status code.
      */
     @PostMapping("refresh")
-    public ResponseEntity<ResponseMessage<TokensDTO>> refresh(@RequestBody RefreshTokensDTO refreshTokensDTO)  {
+    public ResponseEntity<ResponseMessage<TokensDTO>> refresh(@RequestBody RefreshTokensDTO refreshTokensDTO) {
         TokensDTO tokensDTO = authorizationService.refreshTokens(refreshTokensDTO);
         return ResponseMessageBuilder.build(tokensDTO, HttpStatus.OK);
     }
@@ -58,7 +58,7 @@ public class AuthController {
      */
     @JwtAuthenticated
     @PostMapping("logout")
-    public ResponseEntity<ResponseMessage<Void>> logout(){
+    public ResponseEntity<ResponseMessage<Void>> logout() {
         authorizationService.logout();
         return ResponseMessageBuilder.build(HttpStatus.OK);
     }

@@ -1,5 +1,6 @@
 package andre.chamis.healthproject.service;
 
+import andre.chamis.healthproject.domain.exception.BadArgumentException;
 import andre.chamis.healthproject.domain.exception.EntityNotFoundException;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
 import andre.chamis.healthproject.domain.user.dto.CreateUserDTO;
@@ -28,17 +29,26 @@ public class UserService {
     private final UserRepository userRepository;
     private final SessionService sessionService;
     private final RefreshTokenService refreshTokenService;
+    private final OtpService otpService;
 
-    User createUser(CreateUserDTO createUserDTO){
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-        String hashedPassword = bCryptPasswordEncoder.encode(createUserDTO.password());
-
+    /**
+     * Creates a new user based on the provided {@link CreateUserDTO}.
+     *
+     * @param createUserDTO The DTO containing user creation information.
+     * @return The created user.
+     * @throws BadArgumentException If the email is invalid or already exists in the system.
+     */
+    private User createUser(CreateUserDTO createUserDTO) {
         User user = new User();
-        user.setUsername(createUserDTO.username());
+
+        if (!validateEmail(createUserDTO.email())) {
+            throw new BadArgumentException("Email inválido!");
+        }
+
+        if (userRepository.existsByEmail(createUserDTO.email())) {
+            throw new BadArgumentException("O email " + createUserDTO.email() + " já está cadastrado");
+        }
         user.setEmail(createUserDTO.email());
-        user.setPassword(hashedPassword);
-        user.setCreateDt(Date.from(Instant.now()));
-        user.setUpdateDt(Date.from(Instant.now()));
 
         return userRepository.save(user);
     }
@@ -88,7 +98,7 @@ public class UserService {
      * @param email The email to validate.
      * @return True if the email is valid, otherwise false.
      */
-    private boolean validateEmail(String email){
+    private boolean validateEmail(String email) {
         if (email == null) {
             return false;
         }
@@ -105,7 +115,7 @@ public class UserService {
      * @param loginDTO The DTO containing user login credentials.
      * @return An optional User object if credentials are valid, otherwise empty.
      */
-    public Optional<User> validateUserCredential(LoginDTO loginDTO){
+    public Optional<User> validateUserCredential(LoginDTO loginDTO) {
         Optional<User> userOptional = userRepository.findUserByUsername(loginDTO.username());
 
         if (userOptional.isEmpty()) {
@@ -125,7 +135,7 @@ public class UserService {
      * @return The currently logged-in user.
      * @throws ForbiddenException If there is no current user.
      */
-    public User findCurrentUser(){
+    public User findCurrentUser() {
         Long currentUserId = sessionService.getCurrentUserId();
         Optional<User> userOptional = findUserById(currentUserId);
         return userOptional.orElseThrow(() -> new ForbiddenException("Nenhum usuário logado!"));
@@ -151,16 +161,17 @@ public class UserService {
     public GetUserDTO getUserById(Optional<Long> userIdOptional) {
         Long userId = userIdOptional.orElse(sessionService.getCurrentUserId());
         Optional<User> userOptional = findUserById(userId);
-        User user = userOptional.orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado para o id: "+ userId, HttpStatus.BAD_REQUEST));
+        User user = userOptional.orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado para o id: " + userId, HttpStatus.BAD_REQUEST));
 
         return GetUserDTO.fromUser(user);
     }
 
     /**
-     * Updates user information based on the provided DTO.
+     * Updates user information based on the provided {@link UpdateUserDTO}.
      *
      * @param updateUserDTO The DTO containing updated user information.
      * @return A DTO representing the updated user information.
+     * @throws BadArgumentException If any provided information is invalid (username, email, or password).
      */
     public GetUserDTO updateUser(UpdateUserDTO updateUserDTO) {
         boolean updated = false;
@@ -170,17 +181,27 @@ public class UserService {
         String username = user.getUsername();
 
         if (updateUserDTO.username() != null) {
+            if (!validateUsername(updateUserDTO.username())) {
+                throw new BadArgumentException("Nome de usuário inválido!");
+            }
             user.setUsername(updateUserDTO.username());
             updated = true;
             needsReauthentication = true;
         }
 
         if (updateUserDTO.email() != null) {
+            if (!validateEmail(updateUserDTO.email())) {
+                throw new BadArgumentException("Email inválido!");
+            }
+
             user.setEmail(updateUserDTO.email());
             updated = true;
         }
 
         if (updateUserDTO.password() != null) {
+            if (!validatePassword(updateUserDTO.password())) {
+                throw new BadArgumentException("Senha inválida!");
+            }
             BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
             String hashedPassword = bCryptPasswordEncoder.encode(updateUserDTO.password());
             user.setPassword(hashedPassword);
@@ -188,7 +209,7 @@ public class UserService {
             needsReauthentication = true;
         }
 
-        if (updated){
+        if (updated) {
             user.setUpdateDt(Date.from(Instant.now()));
             user = userRepository.save(user);
         }
@@ -202,12 +223,16 @@ public class UserService {
     }
 
     /**
-     * Finds a {@link User} by their email.
+     * Handles the registration of a new user.
      *
-     * @param email The username of the user to find.
-     * @return An {@link Optional} containing the found user, or empty if not found.
+     * @param createUserDTO The DTO containing user creation information.
+     * @return A DTO representing the registered user.
      */
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findUserByEmail(email);
+    public GetUserDTO handleRegisterUser(CreateUserDTO createUserDTO) {
+        User newUser = createUser(createUserDTO);
+
+        otpService.handleCreateOTP(newUser);
+
+        return GetUserDTO.fromUser(newUser);
     }
 }

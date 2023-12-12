@@ -11,13 +11,14 @@ import java.util.Optional;
  */
 @Repository
 public interface UserJpaRepository extends JpaRepository<User, Long> {
+
     /**
-     * Checks if a {@link User} with the given username exists.
+     * Checks if a {@link User} with the given email exists.
      *
-     * @param username The username to check for existence.
-     * @return {@code true} if a user with the given username exists, otherwise {@code false}.
+     * @param email The email to check for existence.
+     * @return {@code true} if a user with the given email exists, otherwise {@code false}.
      */
-    boolean existsByUsername(String username);
+    boolean existsByEmail(String email);
 
     /**
      * Finds a {@link User} by their username.
@@ -26,12 +27,4 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
      * @return An {@link Optional} containing the found user, or empty if not found.
      */
     Optional<User> findUserByUsername(String username);
-
-    /**
-     * Finds a {@link User} by their email.
-     *
-     * @param email The username of the user to find.
-     * @return An {@link Optional} containing the found user, or empty if not found.
-     */
-    Optional<User> findUserByEmail(String email);
 }

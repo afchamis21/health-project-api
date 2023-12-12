@@ -23,7 +23,7 @@ public class UserRepository {
      * @return The number of users loaded into the cache.
      */
     @PostConstruct
-    public int initializeCache(){
+    public int initializeCache() {
         List<User> users = userJpaRepository.findAll();
         userInMemoryCache.initializeCache(users);
         return userInMemoryCache.getSize();
@@ -35,14 +35,14 @@ public class UserRepository {
      * @param userId The ID of the user to find.
      * @return An {@link Optional} containing the found user, or empty if not found.
      */
-    public Optional<User> findById(Long userId){
+    public Optional<User> findById(Long userId) {
         Optional<User> userOptionalFromCache = userInMemoryCache.get(userId);
-        if (userOptionalFromCache.isPresent()){
+        if (userOptionalFromCache.isPresent()) {
             return userOptionalFromCache;
         }
 
         Optional<User> userOptionalFromDatabase = userJpaRepository.findById(userId);
-        if (userOptionalFromDatabase.isPresent()){
+        if (userOptionalFromDatabase.isPresent()) {
             User user = userOptionalFromDatabase.get();
             userInMemoryCache.put(user);
         }
@@ -65,42 +65,22 @@ public class UserRepository {
     }
 
     /**
-     * Checks if a user with the given username exists.
-     *
-     * @param username The username to check for existence.
-     * @return {@code true} if a user with the given username exists, otherwise {@code false}.
-     */
-    public boolean existsByUsername(String username) {
-        return userJpaRepository.existsByUsername(username);
-    }
-
-    /**
      * Finds a user by their username.
      *
      * @param username The username of the user to find.
      * @return An {@link Optional} containing the found user, or empty if not found.
      */
-    public Optional<User> findUserByUsername(String username){
+    public Optional<User> findUserByUsername(String username) {
         return userJpaRepository.findUserByUsername(username);
     }
 
     /**
-     * Checks if a user with the given ID exists in the in-memory cache.
+     * Checks if a user with the given email exists.
      *
-     * @param userId The ID of the user to check for existence.
-     * @return {@code true} if a user with the given ID exists in the cache, otherwise {@code false}.
+     * @param email The email to check for existence.
+     * @return {@code true} if a user with the given email exists, otherwise {@code false}.
      */
-    public boolean existsById(Long userId) {
-        return userInMemoryCache.containsKey(userId);
-    }
-
-    /**
-     * Finds a {@link User} by their email.
-     *
-     * @param email The username of the user to find.
-     * @return An {@link Optional} containing the found user, or empty if not found.
-     */
-    public Optional<User> findUserByEmail(String email) {
-        return userJpaRepository.findUserByEmail(email);
+    public boolean existsByEmail(String email) {
+        return userJpaRepository.existsByEmail(email);
     }
 }

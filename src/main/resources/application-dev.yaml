@@ -2,13 +2,29 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/health_project
     username: postgres
-    password: ${DATABASE_PASSWORD}
+    password: pass
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
   application:
     name: "Health Project"
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          writeTimeout: 10_000
+          connectionTimeout: 10_000
+          timeout: 10_000
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 auth:
   jwt:
@@ -30,3 +46,4 @@ auth:
   cors:
     allowed-uris:
       - "http://localhost:3000"
+
