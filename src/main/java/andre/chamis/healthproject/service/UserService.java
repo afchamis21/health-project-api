@@ -41,14 +41,20 @@ public class UserService {
     private User createUser(CreateUserDTO createUserDTO) {
         User user = new User();
 
-        if (!validateEmail(createUserDTO.email())) {
+        if (!isEmailValid(createUserDTO.email())) {
             throw new BadArgumentException("Email inválido!");
         }
 
         if (userRepository.existsByEmail(createUserDTO.email())) {
             throw new BadArgumentException("O email " + createUserDTO.email() + " já está cadastrado");
         }
+
         user.setEmail(createUserDTO.email());
+
+        user.setCreateDt(Date.from(Instant.now()));
+
+        user.setRegistrationComplete(false);
+        user.setPaid(false);
 
         return userRepository.save(user);
     }
@@ -59,7 +65,7 @@ public class UserService {
      * @param password The password to validate.
      * @return True if the password is valid, otherwise false.
      */
-    private boolean validatePassword(String password) {
+    private boolean isPasswordValid(String password) {
         if (password == null) {
             return false;
         }
@@ -76,7 +82,7 @@ public class UserService {
      * @param username The username to validate.
      * @return True if the username is valid, otherwise false.
      */
-    private boolean validateUsername(String username) {
+    private boolean isUsernameValid(String username) {
         if (username == null) {
             return false;
         }
@@ -98,7 +104,7 @@ public class UserService {
      * @param email The email to validate.
      * @return True if the email is valid, otherwise false.
      */
-    private boolean validateEmail(String email) {
+    private boolean isEmailValid(String email) {
         if (email == null) {
             return false;
         }
@@ -114,6 +120,7 @@ public class UserService {
      *
      * @param loginDTO The DTO containing user login credentials.
      * @return An optional User object if credentials are valid, otherwise empty.
+     * @throws ForbiddenException If the user's registration is incomplete or payment is overdue.
      */
     public Optional<User> validateUserCredential(LoginDTO loginDTO) {
         Optional<User> userOptional = userRepository.findUserByUsername(loginDTO.username());
@@ -122,6 +129,14 @@ public class UserService {
             return Optional.empty();
         }
         User user = userOptional.get();
+
+        if (!user.isRegistrationComplete()) {
+            throw new ForbiddenException("Você ainda não completou seu cadastro! Siga as instruções em seu email");
+        }
+
+        if (!user.isPaid()) {
+            throw new ForbiddenException("Parece que seu pagamento está atrasado!");
+        }
 
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         boolean isPasswordCorrect = bCryptPasswordEncoder.matches(loginDTO.password(), user.getPassword());
@@ -181,7 +196,7 @@ public class UserService {
         String username = user.getUsername();
 
         if (updateUserDTO.username() != null) {
-            if (!validateUsername(updateUserDTO.username())) {
+            if (!isUsernameValid(updateUserDTO.username())) {
                 throw new BadArgumentException("Nome de usuário inválido!");
             }
             user.setUsername(updateUserDTO.username());
@@ -190,7 +205,7 @@ public class UserService {
         }
 
         if (updateUserDTO.email() != null) {
-            if (!validateEmail(updateUserDTO.email())) {
+            if (!isEmailValid(updateUserDTO.email())) {
                 throw new BadArgumentException("Email inválido!");
             }
 
@@ -199,7 +214,7 @@ public class UserService {
         }
 
         if (updateUserDTO.password() != null) {
-            if (!validatePassword(updateUserDTO.password())) {
+            if (!isPasswordValid(updateUserDTO.password())) {
                 throw new BadArgumentException("Senha inválida!");
             }
             BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
@@ -210,7 +225,6 @@ public class UserService {
         }
 
         if (updated) {
-            user.setUpdateDt(Date.from(Instant.now()));
             user = userRepository.save(user);
         }
 

@@ -38,6 +38,18 @@ public class User {
     private String password;
 
     /**
+     * Indicates whether the user is active or not.
+     */
+    @Column(name = "is_registration_complete")
+    private boolean isRegistrationComplete;
+
+    /**
+     * Indicates whether the user has paid for access or not.
+     */
+    @Column(name = "is_paid")
+    private boolean isPaid;
+
+    /**
      * The creation date of the user's record.
      */
     @Column(name = "create_dt")

@@ -5,6 +5,8 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,11 +54,14 @@ public class UserRepository {
 
     /**
      * Saves a user, updating both the database and the in-memory cache.
+     * The update date of the user is set to the current date and time.
      *
      * @param user The user to be saved.
      * @return The saved user.
      */
     public User save(User user) {
+        user.setUpdateDt(Date.from(Instant.now()));
+
         user = userJpaRepository.save(user);
 
         userInMemoryCache.put(user);
