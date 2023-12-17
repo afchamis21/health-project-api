@@ -2,8 +2,11 @@ package andre.chamis.healthproject.domain.user.repository;
 
 import andre.chamis.healthproject.domain.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -27,4 +30,22 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
      * @return An {@link Optional} containing the found user, or empty if not found.
      */
     Optional<User> findUserByUsername(String username);
+
+    /**
+     * Finds a {@link User} by their email.
+     *
+     * @param email The email of the user to find.
+     * @return An {@link Optional} containing the found user, or empty if not found.
+     */
+    Optional<User> findUserByEmail(String email);
+
+    /**
+     * Retrieves a list of users with the specified registration completion status and whose update date is before the given expiration date.
+     *
+     * @param isRegistrationComplete The registration completion status to filter by.
+     * @param expirationDt           The expiration date to compare the update date against.
+     * @return A list of users matching the criteria.
+     */
+    @Query("SELECT u FROM User u WHERE u.isRegistrationComplete = ?1 AND u.updateDt < ?2 ")
+    List<User> findAllByRegistrationCompleteAndUpdateDtBefore(boolean isRegistrationComplete, Date expirationDt);
 }

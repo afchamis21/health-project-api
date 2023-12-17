@@ -88,4 +88,23 @@ public class UserRepository {
     public boolean existsByEmail(String email) {
         return userJpaRepository.existsByEmail(email);
     }
+
+    public void delete(Long userId) {
+        userInMemoryCache.remove(userId);
+        userJpaRepository.deleteById(userId);
+    }
+
+    public Optional<User> findUserByEmail(String email) {
+        return userJpaRepository.findUserByEmail(email);
+    }
+
+    /**
+     * Retrieves a list of users with expired and incomplete registrations based on the provided expiration date.
+     *
+     * @param expirationDt The expiration date to determine registration expiration.
+     * @return A list of users with expired and incomplete registrations.
+     */
+    public List<User> findAllWithExpiredIncompleteRegistrations(Date expirationDt) {
+        return userJpaRepository.findAllByRegistrationCompleteAndUpdateDtBefore(false, expirationDt);
+    }
 }

@@ -44,7 +44,7 @@ public class SessionService {
      *
      * @return The number of deleted expired sessions.
      */
-    public int deleteAllExpired(){
+    public int deleteAllExpired() {
         return sessionRepository.deleteAllExpired();
     }
 
@@ -63,10 +63,10 @@ public class SessionService {
      *
      * @return The ID of the user associated with the current session.
      */
-    public Long getCurrentUserId(){
+    public Long getCurrentUserId() {
         Long sessionId = ServiceContext.getContext().getSessionId();
         Optional<Session> sessionOptional = findSessionById(sessionId);
-        Session session = sessionOptional.orElseThrow(() -> new ForbiddenException("Tried to access session from context without session!"));
+        Session session = sessionOptional.orElseThrow(ForbiddenException::new);
         return session.getUserId();
     }
 

@@ -1,5 +1,7 @@
 package andre.chamis.healthproject.domain.session.repository;
 
+import andre.chamis.healthproject.domain.exception.ForbiddenException;
+import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.session.model.Session;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
@@ -24,7 +26,7 @@ public class SessionRepository {
      * Initializes the in-memory cache with data from the database.
      */
     @PostConstruct
-    void initializeCache(){
+    void initializeCache() {
         inMemoryCache.initializeCache(jpaRepository.findAll());
     }
 
@@ -34,7 +36,7 @@ public class SessionRepository {
      * @param session The session to be saved.
      * @return The saved session.
      */
-    public Session save(Session session){
+    public Session save(Session session) {
         session = jpaRepository.save(session);
         inMemoryCache.put(session);
 
@@ -47,14 +49,18 @@ public class SessionRepository {
      * @param sessionId The ID of the session to find.
      * @return An {@link Optional} containing the found session, or empty if not found.
      */
-    public Optional<Session> findById(Long sessionId){
+    public Optional<Session> findById(Long sessionId) {
+        if (sessionId == null) {
+            throw new ForbiddenException(ErrorMessage.NO_SESSION);
+        }
+
         Optional<Session> sessionOptionalFromCache = inMemoryCache.get(sessionId);
-        if (sessionOptionalFromCache.isPresent()){
+        if (sessionOptionalFromCache.isPresent()) {
             return sessionOptionalFromCache;
         }
 
         Optional<Session> sessionOptionalFromDatabase = jpaRepository.findById(sessionId);
-        if (sessionOptionalFromDatabase.isPresent()){
+        if (sessionOptionalFromDatabase.isPresent()) {
             Session session = sessionOptionalFromDatabase.get();
             inMemoryCache.put(session);
         }
@@ -68,7 +74,7 @@ public class SessionRepository {
      * @return The number of deleted sessions.
      */
     @Transactional
-    public int deleteAllExpired(){
+    public int deleteAllExpired() {
         List<Session> deletedSessions = jpaRepository.deleteAllByExpireDtBefore(Date.from(Instant.now()));
         inMemoryCache.deleteFromList(deletedSessions);
         return deletedSessions.size();

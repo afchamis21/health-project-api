@@ -5,6 +5,7 @@ import andre.chamis.healthproject.context.ServiceContext;
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.NonAuthenticated;
 import andre.chamis.healthproject.domain.exception.UnauthorizedException;
+import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.session.model.Session;
 import andre.chamis.healthproject.service.JwtService;
 import andre.chamis.healthproject.service.SessionService;
@@ -46,11 +47,11 @@ public class AuthInterceptor implements HandlerInterceptor {
             @NonNull HttpServletResponse response,
             @NonNull Object handler
     ) {
-        if (!(handler instanceof HandlerMethod handlerMethod)){
+        if (!(handler instanceof HandlerMethod handlerMethod)) {
             return true; // Let fail for 404
         }
 
-        if (authInterceptorProperties.getAllowedUris().contains(request.getRequestURI())){
+        if (authInterceptorProperties.getAllowedUris().contains(request.getRequestURI())) {
             return true;
         }
 
@@ -73,18 +74,18 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         String token = tokenFromHeaders.orElseThrow(UnauthorizedException::new);
         boolean isTokenValid = jwtService.validateAccessToken(token);
-        if (!isTokenValid){
-            throw new UnauthorizedException("Token inválido!");
+        if (!isTokenValid) {
+            throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
         }
 
         Long sessionId = jwtService.getSessionIdFromToken(token);
         Optional<Session> sessionOptional = sessionService.findSessionById(sessionId);
-        Session session = sessionOptional.orElseThrow(() -> new UnauthorizedException("Sua sessão expirou!"));
+        Session session = sessionOptional.orElseThrow(() -> new UnauthorizedException(ErrorMessage.EXPIRED_SESSION));
 
         boolean isSessionValid = sessionService.validateSessionIsNotExpired(session);
         if (!isSessionValid) {
             sessionService.deleteSessionById(sessionId);
-            throw new UnauthorizedException("Sua sessão expirou!");
+            throw new UnauthorizedException(ErrorMessage.EXPIRED_SESSION);
         }
 
         ServiceContext.getContext().setSessionId(sessionId);
@@ -105,7 +106,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         String[] authHeaderArray = authHeader.split(" ");
-        if (!authHeaderArray[0].equalsIgnoreCase("bearer")){
+        if (!authHeaderArray[0].equalsIgnoreCase("bearer")) {
             return Optional.empty();
         }
 
@@ -128,19 +129,19 @@ public class AuthInterceptor implements HandlerInterceptor {
      * @return The type of authentication required for the method.
      */
     private AuthType getRequestAuthType(HandlerMethod handlerMethod) {
-        if (handlerMethod.getMethod().isAnnotationPresent(JwtAuthenticated.class)){
+        if (handlerMethod.getMethod().isAnnotationPresent(JwtAuthenticated.class)) {
             return AuthType.JWT_TOKEN;
         }
 
-        if (handlerMethod.getMethod().isAnnotationPresent(NonAuthenticated.class)){
+        if (handlerMethod.getMethod().isAnnotationPresent(NonAuthenticated.class)) {
             return AuthType.NON_AUTHENTICATED;
         }
 
-        if (handlerMethod.getBeanType().isAnnotationPresent(JwtAuthenticated.class)){
+        if (handlerMethod.getBeanType().isAnnotationPresent(JwtAuthenticated.class)) {
             return AuthType.JWT_TOKEN;
         }
 
-        if (handlerMethod.getBeanType().isAnnotationPresent(NonAuthenticated.class)){
+        if (handlerMethod.getBeanType().isAnnotationPresent(NonAuthenticated.class)) {
             return AuthType.NON_AUTHENTICATED;
         }
 

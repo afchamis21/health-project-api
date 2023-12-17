@@ -1,6 +1,7 @@
 package andre.chamis.healthproject.domain.exception;
 
 import andre.chamis.healthproject.context.ServiceContext;
+import andre.chamis.healthproject.domain.response.ErrorMessage;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -24,14 +25,14 @@ public abstract class ExceptionWithStatusCode extends RuntimeException {
     }
 
     /**
-     * Constructs an exception with the given message and HTTP status.
+     * Constructs an exception with a specific error message, HTTP status, and adds the message to the service context.
      *
-     * @param message    The exception message.
-     * @param httpStatus The HTTP status associated with the exception.
+     * @param errorMessage The error message associated with the exception.
+     * @param httpStatus   The HTTP status associated with the exception.
      */
-    public ExceptionWithStatusCode(String message, HttpStatus httpStatus) {
-        super(message);
+    public ExceptionWithStatusCode(ErrorMessage errorMessage, HttpStatus httpStatus) {
+        super(errorMessage.getMessage());
         this.httpStatus = httpStatus;
-        ServiceContext.addMessage(message);
+        ServiceContext.addMessage(errorMessage.getMessage());
     }
 }

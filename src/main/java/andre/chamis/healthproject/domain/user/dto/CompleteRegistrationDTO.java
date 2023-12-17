@@ -1,9 +1,9 @@
 package andre.chamis.healthproject.domain.user.dto;
 
 /**
- * Data Transfer Object (DTO) for updating user information.
+ * Data Transfer Object (DTO) for completing a user registration.
  */
-public record UpdateUserDTO(
+public record CompleteRegistrationDTO(
         String username,
         String email,
         String password,

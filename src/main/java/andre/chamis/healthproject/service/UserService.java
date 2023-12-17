@@ -1,21 +1,22 @@
 package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.domain.exception.BadArgumentException;
-import andre.chamis.healthproject.domain.exception.EntityNotFoundException;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
-import andre.chamis.healthproject.domain.user.dto.CreateUserDTO;
-import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
-import andre.chamis.healthproject.domain.user.dto.LoginDTO;
-import andre.chamis.healthproject.domain.user.dto.UpdateUserDTO;
+import andre.chamis.healthproject.domain.response.ErrorMessage;
+import andre.chamis.healthproject.domain.user.dto.*;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.domain.user.repository.UserRepository;
+import andre.chamis.healthproject.util.DateUtils;
+import andre.chamis.healthproject.util.ObjectUtils;
+import andre.chamis.healthproject.util.StringUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,40 +24,58 @@ import java.util.regex.Pattern;
 /**
  * Service class responsible for managing user-related operations.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
     private final SessionService sessionService;
     private final RefreshTokenService refreshTokenService;
-    private final OtpService otpService;
+    private final EmailService emailService;
+
+    private final int OTP_LENGTH = 6;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+
 
     /**
      * Creates a new user based on the provided {@link CreateUserDTO}.
      *
      * @param createUserDTO The DTO containing user creation information.
-     * @return The created user.
+     * @return The DTO containing created user.
      * @throws BadArgumentException If the email is invalid or already exists in the system.
      */
-    private User createUser(CreateUserDTO createUserDTO) {
+    public GetUserDTO handleRegisterUser(CreateUserDTO createUserDTO) {
         User user = new User();
 
         if (!isEmailValid(createUserDTO.email())) {
-            throw new BadArgumentException("Email inválido!");
+            throw new BadArgumentException(ErrorMessage.INVALID_EMAIL);
         }
 
         if (userRepository.existsByEmail(createUserDTO.email())) {
-            throw new BadArgumentException("O email " + createUserDTO.email() + " já está cadastrado");
+            throw new BadArgumentException(ErrorMessage.EMAIL_ALREADY_REGISTERED);
         }
 
         user.setEmail(createUserDTO.email());
 
         user.setCreateDt(Date.from(Instant.now()));
-
         user.setRegistrationComplete(false);
-        user.setPaid(false);
+        user.setActive(false);
 
-        return userRepository.save(user);
+        String oneTimePassword = StringUtils.generateOTP(OTP_LENGTH);
+        String hashedPassword = bCryptPasswordEncoder.encode(oneTimePassword);
+        user.setPassword(hashedPassword);
+
+        String emailMessage = """
+                Olá aqui está a sua senha provisória para continuar o cadastro em nosso site!
+                                
+                {{OTP}}
+                           
+                Você será solicitado a mudar sua senha e atualizar as informações quando fizer login pela primeira vez!
+                """.replace("{{OTP}}", oneTimePassword);
+
+        emailService.sendMail(user.getEmail(), emailMessage, "Complete seu cadastro");
+
+        return GetUserDTO.fromUser(userRepository.save(user));
     }
 
     /**
@@ -73,7 +92,7 @@ public class UserService {
         String passwordRegex = "^\\S+$";
         Pattern pattern = Pattern.compile(passwordRegex);
         Matcher matcher = pattern.matcher(password);
-        return password.length() > 6 && matcher.matches();
+        return password.length() >= 7 && matcher.matches();
     }
 
     /**
@@ -87,15 +106,11 @@ public class UserService {
             return false;
         }
 
-        if (username.length() <= 3) {
-            return false;
-        }
-
         String usernameRegex = "^[A-Za-z0-9_-]+$";
         Pattern pattern = Pattern.compile(usernameRegex);
         Matcher matcher = pattern.matcher(username);
 
-        return matcher.matches();
+        return username.length() > 4 && matcher.matches();
     }
 
     /**
@@ -123,22 +138,13 @@ public class UserService {
      * @throws ForbiddenException If the user's registration is incomplete or payment is overdue.
      */
     public Optional<User> validateUserCredential(LoginDTO loginDTO) {
-        Optional<User> userOptional = userRepository.findUserByUsername(loginDTO.username());
+        Optional<User> userOptional = userRepository.findUserByEmail(loginDTO.email());
 
         if (userOptional.isEmpty()) {
             return Optional.empty();
         }
         User user = userOptional.get();
 
-        if (!user.isRegistrationComplete()) {
-            throw new ForbiddenException("Você ainda não completou seu cadastro! Siga as instruções em seu email");
-        }
-
-        if (!user.isPaid()) {
-            throw new ForbiddenException("Parece que seu pagamento está atrasado!");
-        }
-
-        BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
         boolean isPasswordCorrect = bCryptPasswordEncoder.matches(loginDTO.password(), user.getPassword());
 
         return isPasswordCorrect ? Optional.of(user) : Optional.empty();
@@ -153,7 +159,7 @@ public class UserService {
     public User findCurrentUser() {
         Long currentUserId = sessionService.getCurrentUserId();
         Optional<User> userOptional = findUserById(currentUserId);
-        return userOptional.orElseThrow(() -> new ForbiddenException("Nenhum usuário logado!"));
+        return userOptional.orElseThrow(ForbiddenException::new);
     }
 
     /**
@@ -171,12 +177,12 @@ public class UserService {
      *
      * @param userIdOptional Optional ID of the user to retrieve information for.
      * @return A DTO representing the user's information.
-     * @throws EntityNotFoundException If the user is not found.
+     * @throws BadArgumentException If the user is not found.
      */
     public GetUserDTO getUserById(Optional<Long> userIdOptional) {
         Long userId = userIdOptional.orElse(sessionService.getCurrentUserId());
         Optional<User> userOptional = findUserById(userId);
-        User user = userOptional.orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado para o id: " + userId, HttpStatus.BAD_REQUEST));
+        User user = userOptional.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
 
         return GetUserDTO.fromUser(user);
     }
@@ -197,7 +203,7 @@ public class UserService {
 
         if (updateUserDTO.username() != null) {
             if (!isUsernameValid(updateUserDTO.username())) {
-                throw new BadArgumentException("Nome de usuário inválido!");
+                throw new BadArgumentException(ErrorMessage.INVALID_USERNAME);
             }
             user.setUsername(updateUserDTO.username());
             updated = true;
@@ -206,7 +212,7 @@ public class UserService {
 
         if (updateUserDTO.email() != null) {
             if (!isEmailValid(updateUserDTO.email())) {
-                throw new BadArgumentException("Email inválido!");
+                throw new BadArgumentException(ErrorMessage.INVALID_EMAIL);
             }
 
             user.setEmail(updateUserDTO.email());
@@ -214,12 +220,7 @@ public class UserService {
         }
 
         if (updateUserDTO.password() != null) {
-            if (!isPasswordValid(updateUserDTO.password())) {
-                throw new BadArgumentException("Senha inválida!");
-            }
-            BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-            String hashedPassword = bCryptPasswordEncoder.encode(updateUserDTO.password());
-            user.setPassword(hashedPassword);
+            setUserPassword(user, updateUserDTO.password(), updateUserDTO.confirmPassword());
             updated = true;
             needsReauthentication = true;
         }
@@ -237,16 +238,125 @@ public class UserService {
     }
 
     /**
-     * Handles the registration of a new user.
+     * Handles the completion of user registration.
      *
-     * @param createUserDTO The DTO containing user creation information.
-     * @return A DTO representing the registered user.
+     * @param completeRegistrationDTO The DTO containing information for completing the user registration.
+     * @return A DTO representing the user after completing the registration.
+     * @throws BadArgumentException If the provided information is incomplete or invalid.
      */
-    public GetUserDTO handleRegisterUser(CreateUserDTO createUserDTO) {
-        User newUser = createUser(createUserDTO);
+    public GetUserDTO handleCompleteRegistration(CompleteRegistrationDTO completeRegistrationDTO) {
+        if (ObjectUtils.areAnyPropertiesNull(completeRegistrationDTO)) {
+            throw new BadArgumentException(ErrorMessage.MISSING_INFORMATION);
+        }
 
-        otpService.handleCreateOTP(newUser);
+        User user = findCurrentUser();
 
-        return GetUserDTO.fromUser(newUser);
+        if (!isUsernameValid(completeRegistrationDTO.username())) {
+            throw new BadArgumentException(ErrorMessage.INVALID_USERNAME);
+        }
+        user.setUsername(completeRegistrationDTO.username());
+
+        if (!isEmailValid(completeRegistrationDTO.email())) {
+            throw new BadArgumentException(ErrorMessage.INVALID_EMAIL);
+        }
+        user.setEmail(completeRegistrationDTO.email());
+
+        setUserPassword(user, completeRegistrationDTO.password(), completeRegistrationDTO.confirmPassword());
+
+        String username = user.getUsername();
+        sessionService.deleteCurrentSession();
+        refreshTokenService.deleteTokenByUsername(username);
+
+        user.setRegistrationComplete(true);
+        user.setActive(true);
+
+        return GetUserDTO.fromUser(userRepository.save(user));
+    }
+
+    /**
+     * Sets the password for a user and validates its strength.
+     *
+     * @param user            The user for whom the password is being set.
+     * @param password        The new password.
+     * @param confirmPassword The confirmation of the new password.
+     * @throws BadArgumentException If the password is invalid or the confirmation doesn't match.
+     */
+    private void setUserPassword(User user, String password, String confirmPassword) {
+        if (!isPasswordValid(password)) {
+            throw new BadArgumentException(ErrorMessage.INVALID_PASSWORD);
+        }
+
+        if (!password.equals(confirmPassword)) {
+            throw new BadArgumentException(ErrorMessage.PASSWORDS_DONT_MATCH);
+        }
+
+        String hashedPassword = bCryptPasswordEncoder.encode(password);
+        user.setPassword(hashedPassword);
+    }
+
+
+    /**
+     * Activates a user with the given user ID.
+     *
+     * @param userId The ID of the user to activate.
+     * @return A DTO representing the activated user.
+     * @throws BadArgumentException If the user is not found.
+     */
+    public GetUserDTO activateUser(Long userId) {
+        Optional<User> result = findUserById(userId);
+        User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
+        user.setActive(true);
+        return GetUserDTO.fromUser(userRepository.save(user));
+    }
+
+    /**
+     * Deactivates a user with the given user ID.
+     *
+     * @param userId The ID of the user to deactivate.
+     * @return A DTO representing the deactivated user.
+     * @throws BadArgumentException If the user is not found.
+     */
+    public GetUserDTO deactivateUser(Long userId) {
+        Optional<User> result = findUserById(userId);
+        User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
+        user.setActive(false);
+        return GetUserDTO.fromUser(userRepository.save(user));
+    }
+
+    public void deleteUser(Long userId) {
+        userRepository.delete(userId);
+    }
+
+    /**
+     * Updates passwords for users with expired and incomplete registrations.
+     * Generates a new OTP, encrypts it, updates the password, and sends an email to the user.
+     *
+     * @return The number of users whose passwords were updated.
+     */
+    public int updatePasswordsForIncompleteRegistrations() {
+        Date oneWeekAgo = DateUtils.calculateOneWeekAgo();
+        List<User> users = userRepository.findAllWithExpiredIncompleteRegistrations(oneWeekAgo);
+
+        users.forEach(user -> {
+            String newOTP = StringUtils.generateOTP(OTP_LENGTH);
+            String hashedPassword = bCryptPasswordEncoder.encode(newOTP);
+            user.setPassword(hashedPassword);
+
+            userRepository.save(user);
+
+            String emailMessage = """
+                    Já que você demorou para realizar seu cadastro, tivemos que mudar sua senha provisória ;(
+                    Sua nova senha é:
+                                        
+                    {{OTP}}
+                                        
+                    Clique aqui para concluir seu cadastro
+                    """.replace("{{OTP}}", newOTP);
+
+            log.info("Sending email");
+            emailService.sendMail(user.getEmail(), emailMessage, "Conclua seu cadastro!");
+        });
+
+        return users.size();
     }
 }

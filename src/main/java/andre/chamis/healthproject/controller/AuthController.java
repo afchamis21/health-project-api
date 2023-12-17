@@ -37,6 +37,7 @@ public class AuthController {
     public ResponseEntity<ResponseMessage<TokensDTO>> login(@RequestBody LoginDTO loginDTO) {
         TokensDTO tokensDTO = authorizationService.authenticateUser(loginDTO);
         return ResponseMessageBuilder.build(tokensDTO, HttpStatus.CREATED);
+        // TODO implementar autenticação de serviços e colocar ela em metodos como login, registro, etc.
     }
 
     /**
@@ -47,7 +48,7 @@ public class AuthController {
      */
     @PostMapping("refresh")
     public ResponseEntity<ResponseMessage<TokensDTO>> refresh(@RequestBody RefreshTokensDTO refreshTokensDTO) {
-        TokensDTO tokensDTO = authorizationService.refreshTokens(refreshTokensDTO);
+        TokensDTO tokensDTO = authorizationService.refreshUserTokens(refreshTokensDTO);
         return ResponseMessageBuilder.build(tokensDTO, HttpStatus.OK);
     }
 

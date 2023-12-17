@@ -16,7 +16,7 @@ public class User {
      * The unique identifier of the user.
      */
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "user_id")
     private Long userId;
 
@@ -38,16 +38,16 @@ public class User {
     private String password;
 
     /**
-     * Indicates whether the user is active or not.
+     * Indicates whether the user registration is complete or not.
      */
     @Column(name = "is_registration_complete")
     private boolean isRegistrationComplete;
 
     /**
-     * Indicates whether the user has paid for access or not.
+     * Indicates whether the user is active or not.
      */
-    @Column(name = "is_paid")
-    private boolean isPaid;
+    @Column(name = "is_active")
+    private boolean isActive;
 
     /**
      * The creation date of the user's record.
@@ -60,4 +60,12 @@ public class User {
      */
     @Column(name = "update_dt")
     private Date updateDt;
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId=" + userId +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }

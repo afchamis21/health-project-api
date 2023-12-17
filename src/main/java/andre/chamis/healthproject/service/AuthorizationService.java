@@ -2,7 +2,10 @@ package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.domain.auth.dto.RefreshTokensDTO;
 import andre.chamis.healthproject.domain.auth.dto.TokensDTO;
+import andre.chamis.healthproject.domain.client.dto.ClientAuthDTO;
+import andre.chamis.healthproject.domain.client.model.Client;
 import andre.chamis.healthproject.domain.exception.UnauthorizedException;
+import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.session.model.Session;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.user.dto.LoginDTO;
@@ -27,6 +30,7 @@ public class AuthorizationService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final SessionService sessionService;
+    private final ClientService clientService;
 
     /**
      * Authenticates a user and generates access and refresh tokens.
@@ -36,9 +40,25 @@ public class AuthorizationService {
      */
     public TokensDTO authenticateUser(LoginDTO loginDTO) {
         Optional<User> userOptional = userService.validateUserCredential(loginDTO);
-        User user = userOptional.orElseThrow(() -> new UnauthorizedException("Credenciais inválidas!"));
+        User user = userOptional.orElseThrow(() -> new UnauthorizedException(ErrorMessage.INVALID_CREDENTIALS));
 
         return generateSessionAndTokens(user);
+    }
+
+    public TokensDTO authenticateClient(ClientAuthDTO clientAuthDTO) {
+        Optional<Client> clientOptional = clientService.validateClientCredentials(clientAuthDTO);
+        Client client = clientOptional.orElseThrow(() -> new UnauthorizedException(ErrorMessage.INVALID_CREDENTIALS));
+
+        return generateClientTokens(client);
+    }
+
+    private TokensDTO generateClientTokens(Client client) {
+        String accessToken = jwtService.createAccessToken(client);
+        String refreshToken = jwtService.createRefreshToken(client);
+
+        refreshTokenService.saveTokenToDatabase(refreshToken);
+
+        return new TokensDTO(accessToken, refreshToken, (User) null);
     }
 
     /**
@@ -47,29 +67,29 @@ public class AuthorizationService {
      * @param refreshTokensDTO The DTO containing the refresh token.
      * @return DTO containing new access and refresh tokens.
      */
-    public TokensDTO refreshTokens(RefreshTokensDTO refreshTokensDTO) {
+    public TokensDTO refreshUserTokens(RefreshTokensDTO refreshTokensDTO) {
         String refreshToken = refreshTokensDTO.refreshToken();
         boolean isTokenValid = jwtService.validateRefreshToken(refreshToken);
         if (!isTokenValid) {
             refreshTokenService.deleteToken(refreshToken);
-            throw new UnauthorizedException("Token inválido");
+            throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
         }
 
         boolean isTokenOnDatabase = refreshTokenService.existsOnDatabase(refreshToken);
         if (!isTokenOnDatabase) {
-            throw new UnauthorizedException("Token inválido");
+            throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
         }
         String username = jwtService.getTokenSubject(refreshToken);
 
         Long sessionId = jwtService.getSessionIdFromToken(refreshToken);
         Optional<Session> sessionOptional = sessionService.findSessionById(sessionId);
-        Session session = sessionOptional.orElseThrow(() -> new UnauthorizedException("Sua sessão expirou! Faça login novamente"));
+        Session session = sessionOptional.orElseThrow(() -> new UnauthorizedException(ErrorMessage.EXPIRED_SESSION));
 
         boolean isSessionValid = sessionService.validateSessionIsNotExpired(session);
-        if (!isSessionValid){
-            throw new UnauthorizedException("Sua sessão expirou! Faça login novamente");
+        if (!isSessionValid) {
+            throw new UnauthorizedException(ErrorMessage.EXPIRED_SESSION);
         }
-        
+
         String accessToken = jwtService.createAccessToken(username, session);
 
         Date refreshTokenExpirationDate = jwtService.getTokenExpiresAt(refreshToken);

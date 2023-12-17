@@ -27,6 +27,8 @@ public class GetUserDTO {
      */
     private String email;
 
+    private Boolean isRegistrationComplete;
+
     /**
      * Creates a {@link GetUserDTO} instance from a {@link User} object.
      *
@@ -38,6 +40,7 @@ public class GetUserDTO {
         getUserDTO.setUserId(user.getUserId());
         getUserDTO.setUsername(user.getUsername());
         getUserDTO.setEmail(user.getEmail());
+        getUserDTO.setIsRegistrationComplete(user.isRegistrationComplete());
 
         return getUserDTO;
     }
