@@ -39,6 +39,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class IncompleteRegistrationInterceptor implements HandlerInterceptor {
     private static final List<String> URIS_ALLOWED_WITHOUT_COMPLETE_REGISTRATION = List.of(
+            "/user",
             "/user/complete-registration",
             "/auth/login",
             "/auth/refresh",

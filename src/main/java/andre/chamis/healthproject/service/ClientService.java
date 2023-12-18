@@ -26,7 +26,7 @@ public class ClientService {
 
         Client client = result.get();
 
-        boolean isPasswordCorrect = bCryptPasswordEncoder.matches(client.getPublicKey(), client.getPublicKey());
+        boolean isPasswordCorrect = bCryptPasswordEncoder.matches(clientAuthDTO.publicKey(), client.getPublicKey());
 
         return isPasswordCorrect ? Optional.of(client) : Optional.empty();
     }

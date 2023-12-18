@@ -2,9 +2,6 @@ package andre.chamis.healthproject.service;
 
 
 import andre.chamis.healthproject.domain.auth.property.AuthProperties;
-import andre.chamis.healthproject.domain.client.model.Client;
-import andre.chamis.healthproject.domain.session.model.Session;
-import andre.chamis.healthproject.domain.user.model.User;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -46,14 +43,14 @@ public class JwtService {
     }
 
     /**
-     * Creates an access token for a user session.
+     * Creates an access token for a user based on the provided username and session ID.
      *
-     * @param username  The username.
-     * @param sessionId The id of the user session.
-     * @return The generated access token.
+     * @param username  The username for which the token is created.
+     * @param sessionId The session ID associated with the user.
+     * @return The generated user access token.
      */
-    public String createAccessToken(String username, Long sessionId) {
-        return JWT.create() // TODO check all verifications and creations of jwts to see if a null subject can cause vulnerabilites or bugs
+    public String createUserAccessToken(String username, Long sessionId) {
+        return JWT.create()
                 .withSubject(username)
                 .withIssuer(appName)
                 .withClaim(SESSION_PAYLOAD_KEY, sessionId)
@@ -65,24 +62,13 @@ public class JwtService {
     }
 
     /**
-     * Creates an access token for a user session.
+     * Creates a refresh token for a user based on the provided username and session ID.
      *
-     * @param user    The user.
-     * @param session The user session.
-     * @return The generated access token.
+     * @param username  The username for which the token is created.
+     * @param sessionId The session ID associated with the user.
+     * @return The generated user refresh token.
      */
-    public String createAccessToken(User user, Session session) {
-        return createAccessToken(user.getUsername(), session.getSessionId());
-    }
-
-    /**
-     * Creates a refresh token for a user session.
-     *
-     * @param username  The username.
-     * @param sessionId The id of the user session.
-     * @return The generated refresh token.
-     */
-    public String createRefreshToken(String username, Long sessionId) {
+    public String createUserRefreshToken(String username, Long sessionId) {
         return JWT.create()
                 .withSubject(username)
                 .withIssuer(appName)
@@ -95,30 +81,53 @@ public class JwtService {
     }
 
     /**
-     * Creates a refresh token for a user session.
+     * Creates an access token for a client based on the provided client name.
      *
-     * @param user    The user.
-     * @param session The user session.
-     * @return The generated refresh token.
+     * @param name The client name for which the token is created.
+     * @return The generated client access token.
      */
-    public String createRefreshToken(User user, Session session) {
-        return createRefreshToken(user.getUsername(), session.getSessionId());
+    public String createClientAccessToken(String name) {
+        return JWT.create()
+                .withSubject(name)
+                .withIssuer(appName)
+                .withIssuedAt(Instant.now())
+                .withExpiresAt(Instant.now().plus(
+                        authProperties.getUser().getAccessToken().getDuration(),
+                        authProperties.getUser().getAccessToken().getUnit()
+                )).sign(clientAccessTokenAlgorithm);
     }
 
     /**
-     * Validates an access token.
+     * Creates a refresh token for a client based on the provided client name.
+     *
+     * @param name The client name for which the token is created.
+     * @return The generated client refresh token.
+     */
+    public String createClientRefreshToken(String name) {
+        return JWT.create()
+                .withSubject(name)
+                .withIssuer(appName)
+                .withIssuedAt(Instant.now())
+                .withExpiresAt(Instant.now().plus(
+                        authProperties.getUser().getRefreshToken().getDuration(),
+                        authProperties.getUser().getRefreshToken().getUnit()
+                )).sign(clientRefreshTokenAlgorithm);
+    }
+
+    /**
+     * Validates a user access token.
      *
      * @param token The access token to validate.
      * @return True if the token is valid, otherwise false.
      */
-    public boolean validateAccessToken(String token) { // TODO REFACTOR TO SUPPORT CLIENT
+    public boolean validateUserAccessToken(String token) {
         try {
             JWTVerifier verifier = JWT.require(userAccessTokenAlgorithm).withIssuer(appName).build();
             verifier.verify(token);
             return true;
         } catch (TokenExpiredException ex) {
             Long sessionId = getSessionIdFromToken(token);
-            sessionService.deleteSessionById(sessionId); // TODO move to interceptor
+            sessionService.deleteSessionById(sessionId);
             return false;
         } catch (JWTVerificationException ex) {
             return false;
@@ -126,14 +135,46 @@ public class JwtService {
     }
 
     /**
-     * Validates a refresh token.
+     * Validates a client access token.
+     *
+     * @param token The access token to validate.
+     * @return True if the token is valid, otherwise false.
+     */
+    public boolean validateClientAccessToken(String token) {
+        try {
+            JWTVerifier verifier = JWT.require(clientAccessTokenAlgorithm).withIssuer(appName).build();
+            verifier.verify(token);
+            return true;
+        } catch (JWTVerificationException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * Validates a user refresh token.
      *
      * @param token The refresh token to validate.
      * @return True if the token is valid, otherwise false.
      */
-    public boolean validateRefreshToken(String token) { // TODO REFACTOR TO SUPPORT CLIENT
+    public boolean validateUserRefreshToken(String token) {
         try {
             JWTVerifier verifier = JWT.require(userRefreshTokenAlgorithm).withIssuer(appName).build();
+            verifier.verify(token);
+            return true;
+        } catch (JWTVerificationException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * Validates a client refresh token.
+     *
+     * @param token The refresh token to validate.
+     * @return True if the token is valid, otherwise false.
+     */
+    public boolean validateClientRefreshToken(String token) {
+        try {
+            JWTVerifier verifier = JWT.require(clientRefreshTokenAlgorithm).withIssuer(appName).build();
             verifier.verify(token);
             return true;
         } catch (JWTVerificationException ex) {
@@ -183,13 +224,5 @@ public class JwtService {
     public Long getSessionIdFromToken(String token) {
         DecodedJWT decodedJWT = JWT.decode(token);
         return decodedJWT.getClaim(SESSION_PAYLOAD_KEY).asLong();
-    }
-
-    public String createAccessToken(Client client) {
-        return createAccessToken(client.getClientName(), null);
-    }
-
-    public String createRefreshToken(Client client) {
-        return createAccessToken(client.getClientName(), null);
     }
 }

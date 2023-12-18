@@ -5,7 +5,6 @@ package andre.chamis.healthproject.domain.user.dto;
  */
 public record CompleteRegistrationDTO(
         String username,
-        String email,
         String password,
         String confirmPassword
 ) {

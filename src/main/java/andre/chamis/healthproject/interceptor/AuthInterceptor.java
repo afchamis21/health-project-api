@@ -2,6 +2,7 @@ package andre.chamis.healthproject.interceptor;
 
 
 import andre.chamis.healthproject.context.ServiceContext;
+import andre.chamis.healthproject.domain.auth.annotation.ClientAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.NonAuthenticated;
 import andre.chamis.healthproject.domain.exception.UnauthorizedException;
@@ -59,6 +60,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         return switch (authType) {
             case JWT_TOKEN -> handleJwtAuthentication(request);
+            case CLIENT_AUTHENTICATED -> handleClientAuthentication(request);
             case NON_AUTHENTICATED -> true;
         };
     }
@@ -72,8 +74,8 @@ public class AuthInterceptor implements HandlerInterceptor {
     private boolean handleJwtAuthentication(HttpServletRequest request) {
         Optional<String> tokenFromHeaders = getTokenFromHeaders(request);
 
-        String token = tokenFromHeaders.orElseThrow(UnauthorizedException::new);
-        boolean isTokenValid = jwtService.validateAccessToken(token);
+        String token = tokenFromHeaders.orElseThrow(() -> new UnauthorizedException(ErrorMessage.INVALID_JWT));
+        boolean isTokenValid = jwtService.validateUserAccessToken(token);
         if (!isTokenValid) {
             throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
         }
@@ -93,6 +95,18 @@ public class AuthInterceptor implements HandlerInterceptor {
         return true;
     }
 
+    private boolean handleClientAuthentication(HttpServletRequest request) {
+        Optional<String> tokenFromHeaders = getTokenFromHeaders(request);
+
+        String token = tokenFromHeaders.orElseThrow(() -> new UnauthorizedException(ErrorMessage.INVALID_JWT));
+        boolean isTokenValid = jwtService.validateClientAccessToken(token);
+        if (!isTokenValid) {
+            throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
+        }
+
+        return true;
+    }
+
     /**
      * Retrieves and validates the JWT token from the request headers.
      *
@@ -106,7 +120,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         String[] authHeaderArray = authHeader.split(" ");
-        if (!authHeaderArray[0].equalsIgnoreCase("bearer")) {
+        if (!authHeaderArray[0].equalsIgnoreCase("bearer") || authHeaderArray.length != 2) {
             return Optional.empty();
         }
 
@@ -119,6 +133,7 @@ public class AuthInterceptor implements HandlerInterceptor {
      */
     private enum AuthType {
         JWT_TOKEN,
+        CLIENT_AUTHENTICATED,
         NON_AUTHENTICATED
     }
 
@@ -133,12 +148,20 @@ public class AuthInterceptor implements HandlerInterceptor {
             return AuthType.JWT_TOKEN;
         }
 
+        if (handlerMethod.getMethod().isAnnotationPresent(ClientAuthenticated.class)) {
+            return AuthType.CLIENT_AUTHENTICATED;
+        }
+
         if (handlerMethod.getMethod().isAnnotationPresent(NonAuthenticated.class)) {
             return AuthType.NON_AUTHENTICATED;
         }
 
         if (handlerMethod.getBeanType().isAnnotationPresent(JwtAuthenticated.class)) {
             return AuthType.JWT_TOKEN;
+        }
+
+        if (handlerMethod.getBeanType().isAnnotationPresent(ClientAuthenticated.class)) {
+            return AuthType.CLIENT_AUTHENTICATED;
         }
 
         if (handlerMethod.getBeanType().isAnnotationPresent(NonAuthenticated.class)) {

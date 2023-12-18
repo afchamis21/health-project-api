@@ -45,22 +45,6 @@ public class AuthorizationService {
         return generateSessionAndTokens(user);
     }
 
-    public TokensDTO authenticateClient(ClientAuthDTO clientAuthDTO) {
-        Optional<Client> clientOptional = clientService.validateClientCredentials(clientAuthDTO);
-        Client client = clientOptional.orElseThrow(() -> new UnauthorizedException(ErrorMessage.INVALID_CREDENTIALS));
-
-        return generateClientTokens(client);
-    }
-
-    private TokensDTO generateClientTokens(Client client) {
-        String accessToken = jwtService.createAccessToken(client);
-        String refreshToken = jwtService.createRefreshToken(client);
-
-        refreshTokenService.saveTokenToDatabase(refreshToken);
-
-        return new TokensDTO(accessToken, refreshToken, (User) null);
-    }
-
     /**
      * Refreshes access and refresh tokens.
      *
@@ -69,7 +53,7 @@ public class AuthorizationService {
      */
     public TokensDTO refreshUserTokens(RefreshTokensDTO refreshTokensDTO) {
         String refreshToken = refreshTokensDTO.refreshToken();
-        boolean isTokenValid = jwtService.validateRefreshToken(refreshToken);
+        boolean isTokenValid = jwtService.validateUserRefreshToken(refreshToken);
         if (!isTokenValid) {
             refreshTokenService.deleteToken(refreshToken);
             throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
@@ -90,7 +74,7 @@ public class AuthorizationService {
             throw new UnauthorizedException(ErrorMessage.EXPIRED_SESSION);
         }
 
-        String accessToken = jwtService.createAccessToken(username, session);
+        String accessToken = jwtService.createUserAccessToken(username, session.getSessionId());
 
         Date refreshTokenExpirationDate = jwtService.getTokenExpiresAt(refreshToken);
         Duration durationUntilRefreshTokenExpires = Duration.between(
@@ -99,7 +83,7 @@ public class AuthorizationService {
         );
 
         if (durationUntilRefreshTokenExpires.toHours() <= 2) {
-            refreshToken = jwtService.createRefreshToken(username, session);
+            refreshToken = jwtService.createUserRefreshToken(username, session.getSessionId());
         }
 
         return new TokensDTO(accessToken, refreshToken, (GetUserDTO) null);
@@ -114,17 +98,90 @@ public class AuthorizationService {
         sessionService.deleteCurrentSession();
     }
 
+    /**
+     * Generates a session and tokens for a user after successful authentication.
+     *
+     * @param user The authenticated user.
+     * @return The generated access and refresh tokens along with user information.
+     */
     private TokensDTO generateSessionAndTokens(User user) {
         // Create a session for the user.
         Session session = sessionService.createSession(user);
 
         // Generate access and refresh token for the user.
-        String accessToken = jwtService.createAccessToken(user, session);
-        String refreshToken = jwtService.createRefreshToken(user, session);
+        String accessToken = jwtService.createUserAccessToken(user.getUsername(), session.getSessionId());
+        String refreshToken = jwtService.createUserRefreshToken(user.getUsername(), session.getSessionId());
 
         // Saves refresh token on database.
         refreshTokenService.saveTokenToDatabase(refreshToken);
 
         return new TokensDTO(accessToken, refreshToken, user);
+    }
+
+    /**
+     * Authenticates a client and generates access and refresh tokens.
+     *
+     * @param clientAuthDTO The DTO containing client authentication credentials.
+     * @return The generated access and refresh tokens.
+     * @throws UnauthorizedException If the client credentials are invalid.
+     */
+    public TokensDTO authenticateClient(ClientAuthDTO clientAuthDTO) {
+        Optional<Client> clientOptional = clientService.validateClientCredentials(clientAuthDTO);
+        Client client = clientOptional.orElseThrow(() -> new UnauthorizedException(ErrorMessage.INVALID_CREDENTIALS));
+
+        return generateClientTokens(client);
+    }
+
+    /**
+     * Generates access and refresh tokens for a client.
+     *
+     * @param client The client for which tokens are generated.
+     * @return The generated access and refresh tokens.
+     */
+    private TokensDTO generateClientTokens(Client client) {
+        String accessToken = jwtService.createClientAccessToken(client.getClientName());
+        String refreshToken = jwtService.createClientRefreshToken(client.getClientName());
+
+        refreshTokenService.saveTokenToDatabase(refreshToken);
+
+        return new TokensDTO(accessToken, refreshToken, (GetUserDTO) null);
+    }
+
+    /**
+     * Refreshes client tokens based on the provided refresh token.
+     *
+     * @param refreshTokensDTO The DTO containing the refresh token.
+     * @return The refreshed access and refresh tokens.
+     * @throws UnauthorizedException If the refresh token is invalid.
+     */
+    public TokensDTO refreshClientTokens(RefreshTokensDTO refreshTokensDTO) {
+        String refreshToken = refreshTokensDTO.refreshToken();
+        boolean isTokenValid = jwtService.validateClientRefreshToken(refreshToken);
+
+        if (!isTokenValid) {
+            refreshTokenService.deleteToken(refreshToken);
+            throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
+        }
+
+        boolean isTokenOnDatabase = refreshTokenService.existsOnDatabase(refreshToken);
+        if (!isTokenOnDatabase) {
+            throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
+        }
+
+        String clientName = jwtService.getTokenSubject(refreshToken);
+
+        String accessToken = jwtService.createClientAccessToken(clientName);
+
+        Date refreshTokenExpirationDate = jwtService.getTokenExpiresAt(refreshToken);
+        Duration durationUntilRefreshTokenExpires = Duration.between(
+                Instant.now(),
+                refreshTokenExpirationDate.toInstant()
+        );
+
+        if (durationUntilRefreshTokenExpires.toHours() <= 2) {
+            refreshToken = jwtService.createClientRefreshToken(clientName);
+        }
+
+        return new TokensDTO(accessToken, refreshToken, (GetUserDTO) null);
     }
 }

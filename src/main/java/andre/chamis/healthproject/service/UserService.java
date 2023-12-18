@@ -256,11 +256,6 @@ public class UserService {
         }
         user.setUsername(completeRegistrationDTO.username());
 
-        if (!isEmailValid(completeRegistrationDTO.email())) {
-            throw new BadArgumentException(ErrorMessage.INVALID_EMAIL);
-        }
-        user.setEmail(completeRegistrationDTO.email());
-
         setUserPassword(user, completeRegistrationDTO.password(), completeRegistrationDTO.confirmPassword());
 
         String username = user.getUsername();
@@ -353,7 +348,6 @@ public class UserService {
                     Clique aqui para concluir seu cadastro
                     """.replace("{{OTP}}", newOTP);
 
-            log.info("Sending email");
             emailService.sendMail(user.getEmail(), emailMessage, "Conclua seu cadastro!");
         });
 
