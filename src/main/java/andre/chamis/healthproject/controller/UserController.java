@@ -25,6 +25,18 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    
+    /**
+     * Endpoint for retrieving user information.
+     *
+     * @param userId Optional parameter specifying the user ID.
+     * @return A ResponseEntity containing a ResponseMessage with the requested user's information on success.
+     */
+    @GetMapping("")
+    public ResponseEntity<ResponseMessage<GetUserDTO>> getUser(@RequestParam Optional<Long> userId) {
+        GetUserDTO getUserDTO = userService.getUserById(userId);
+        return ResponseMessageBuilder.build(getUserDTO, HttpStatus.OK);
+    }
 
     /**
      * Endpoint for registering a new user.
@@ -37,18 +49,6 @@ public class UserController {
     public ResponseEntity<ResponseMessage<GetUserDTO>> register(@RequestBody CreateUserDTO createUserDTO) {
         GetUserDTO getUserDTO = userService.handleRegisterUser(createUserDTO);
         return ResponseMessageBuilder.build(getUserDTO, HttpStatus.CREATED);
-    }
-
-    /**
-     * Endpoint for retrieving user information.
-     *
-     * @param userId Optional parameter specifying the user ID.
-     * @return A ResponseEntity containing a ResponseMessage with the requested user's information on success.
-     */
-    @GetMapping("")
-    public ResponseEntity<ResponseMessage<GetUserDTO>> getUser(@RequestParam Optional<Long> userId) {
-        GetUserDTO getUserDTO = userService.getUserById(userId);
-        return ResponseMessageBuilder.build(getUserDTO, HttpStatus.OK);
     }
 
     /**

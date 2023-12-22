@@ -263,7 +263,7 @@ public class UserService {
         refreshTokenService.deleteTokenByUsername(username);
 
         user.setRegistrationComplete(true);
-        user.setActive(true);
+        // TODO activar o usuario quando pagar
 
         return GetUserDTO.fromUser(userRepository.save(user));
     }
