@@ -27,7 +27,15 @@ public class GetUserDTO {
      */
     private String email;
 
+    /**
+     * Indicates whether the user's registration is complete.
+     */
     private Boolean isRegistrationComplete;
+
+    /**
+     * Indicates whether the user is active.
+     */
+    private Boolean isActive;
 
     /**
      * Creates a {@link GetUserDTO} instance from a {@link User} object.
@@ -41,6 +49,7 @@ public class GetUserDTO {
         getUserDTO.setUsername(user.getUsername());
         getUserDTO.setEmail(user.getEmail());
         getUserDTO.setIsRegistrationComplete(user.isRegistrationComplete());
+        getUserDTO.setIsActive(user.isActive());
 
         return getUserDTO;
     }

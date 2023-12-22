@@ -353,4 +353,18 @@ public class UserService {
 
         return users.size();
     }
+
+    /**
+     * Activates a user with the given email.
+     *
+     * @param email The email of the user to activate.
+     * @return A DTO representing the activated user.
+     * @throws BadArgumentException If the user is not found.
+     */
+    public GetUserDTO activateUser(String email) {
+        Optional<User> result = userRepository.findUserByEmail(email);
+        User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
+        user.setActive(true);
+        return GetUserDTO.fromUser(userRepository.save(user));
+    }
 }

@@ -25,7 +25,7 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
-    
+
     /**
      * Endpoint for retrieving user information.
      *
@@ -85,6 +85,19 @@ public class UserController {
     @PatchMapping("activate")
     public ResponseEntity<ResponseMessage<GetUserDTO>> activateUser(@RequestParam Long userId) {
         GetUserDTO getUserDTO = userService.activateUser(userId);
+        return ResponseMessageBuilder.build(getUserDTO, HttpStatus.OK);
+    }
+
+    /**
+     * Endpoint for activating a user.
+     *
+     * @param email The email of the user to be activated.
+     * @return A ResponseEntity containing a ResponseMessage with the activated user's information on success.
+     */
+    @ClientAuthenticated
+    @PatchMapping("activate/email")
+    public ResponseEntity<ResponseMessage<GetUserDTO>> activateUserByEmail(@RequestParam String email) {
+        GetUserDTO getUserDTO = userService.activateUser(email);
         return ResponseMessageBuilder.build(getUserDTO, HttpStatus.OK);
     }
 
