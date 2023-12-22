@@ -26,20 +26,16 @@ public class JwtService {
     private String appName;
     private final AuthProperties authProperties;
     private final SessionService sessionService;
+
     private final String SESSION_PAYLOAD_KEY = "sessionId";
 
     private Algorithm userAccessTokenAlgorithm;
     private Algorithm userRefreshTokenAlgorithm;
-    private Algorithm clientAccessTokenAlgorithm;
-    private Algorithm clientRefreshTokenAlgorithm;
 
     @PostConstruct
     void buildAlgorithms() {
         userAccessTokenAlgorithm = Algorithm.HMAC256(authProperties.getUser().getAccessToken().getEncryptionKey().getBytes());
         userRefreshTokenAlgorithm = Algorithm.HMAC256(authProperties.getUser().getRefreshToken().getEncryptionKey().getBytes());
-
-        clientAccessTokenAlgorithm = Algorithm.HMAC256(authProperties.getClient().getAccessToken().getEncryptionKey().getBytes());
-        clientRefreshTokenAlgorithm = Algorithm.HMAC256(authProperties.getClient().getRefreshToken().getEncryptionKey().getBytes());
     }
 
     /**
@@ -81,40 +77,6 @@ public class JwtService {
     }
 
     /**
-     * Creates an access token for a client based on the provided client name.
-     *
-     * @param name The client name for which the token is created.
-     * @return The generated client access token.
-     */
-    public String createClientAccessToken(String name) {
-        return JWT.create()
-                .withSubject(name)
-                .withIssuer(appName)
-                .withIssuedAt(Instant.now())
-                .withExpiresAt(Instant.now().plus(
-                        authProperties.getUser().getAccessToken().getDuration(),
-                        authProperties.getUser().getAccessToken().getUnit()
-                )).sign(clientAccessTokenAlgorithm);
-    }
-
-    /**
-     * Creates a refresh token for a client based on the provided client name.
-     *
-     * @param name The client name for which the token is created.
-     * @return The generated client refresh token.
-     */
-    public String createClientRefreshToken(String name) {
-        return JWT.create()
-                .withSubject(name)
-                .withIssuer(appName)
-                .withIssuedAt(Instant.now())
-                .withExpiresAt(Instant.now().plus(
-                        authProperties.getUser().getRefreshToken().getDuration(),
-                        authProperties.getUser().getRefreshToken().getUnit()
-                )).sign(clientRefreshTokenAlgorithm);
-    }
-
-    /**
      * Validates a user access token.
      *
      * @param token The access token to validate.
@@ -135,22 +97,6 @@ public class JwtService {
     }
 
     /**
-     * Validates a client access token.
-     *
-     * @param token The access token to validate.
-     * @return True if the token is valid, otherwise false.
-     */
-    public boolean validateClientAccessToken(String token) {
-        try {
-            JWTVerifier verifier = JWT.require(clientAccessTokenAlgorithm).withIssuer(appName).build();
-            verifier.verify(token);
-            return true;
-        } catch (JWTVerificationException ex) {
-            return false;
-        }
-    }
-
-    /**
      * Validates a user refresh token.
      *
      * @param token The refresh token to validate.
@@ -159,22 +105,6 @@ public class JwtService {
     public boolean validateUserRefreshToken(String token) {
         try {
             JWTVerifier verifier = JWT.require(userRefreshTokenAlgorithm).withIssuer(appName).build();
-            verifier.verify(token);
-            return true;
-        } catch (JWTVerificationException ex) {
-            return false;
-        }
-    }
-
-    /**
-     * Validates a client refresh token.
-     *
-     * @param token The refresh token to validate.
-     * @return True if the token is valid, otherwise false.
-     */
-    public boolean validateClientRefreshToken(String token) {
-        try {
-            JWTVerifier verifier = JWT.require(clientRefreshTokenAlgorithm).withIssuer(appName).build();
             verifier.verify(token);
             return true;
         } catch (JWTVerificationException ex) {

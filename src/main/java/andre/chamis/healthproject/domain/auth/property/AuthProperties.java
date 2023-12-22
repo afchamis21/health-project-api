@@ -19,11 +19,6 @@ public class AuthProperties {
     private JwtProperties user;
 
     /**
-     * JWT properties for service authentication.
-     */
-    private JwtProperties client;
-
-    /**
      * Nested class representing JWT properties.
      */
     @Data

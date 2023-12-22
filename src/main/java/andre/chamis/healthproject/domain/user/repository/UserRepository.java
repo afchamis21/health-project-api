@@ -44,10 +44,8 @@ public class UserRepository {
         }
 
         Optional<User> userOptionalFromDatabase = userJpaRepository.findById(userId);
-        if (userOptionalFromDatabase.isPresent()) {
-            User user = userOptionalFromDatabase.get();
-            userInMemoryCache.put(user);
-        }
+
+        userOptionalFromDatabase.ifPresent(userInMemoryCache::put);
 
         return userJpaRepository.findById(userId);
     }
@@ -67,16 +65,6 @@ public class UserRepository {
         userInMemoryCache.put(user);
 
         return user;
-    }
-
-    /**
-     * Finds a user by their username.
-     *
-     * @param username The username of the user to find.
-     * @return An {@link Optional} containing the found user, or empty if not found.
-     */
-    public Optional<User> findUserByUsername(String username) {
-        return userJpaRepository.findUserByUsername(username);
     }
 
     /**

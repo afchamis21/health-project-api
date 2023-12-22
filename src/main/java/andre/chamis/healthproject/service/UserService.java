@@ -61,7 +61,7 @@ public class UserService {
         user.setRegistrationComplete(false);
         user.setActive(false);
 
-        String oneTimePassword = StringUtils.generateOTP(OTP_LENGTH);
+        String oneTimePassword = StringUtils.generateRandomString(OTP_LENGTH);
         String hashedPassword = bCryptPasswordEncoder.encode(oneTimePassword);
         user.setPassword(hashedPassword);
 
@@ -333,7 +333,7 @@ public class UserService {
         List<User> users = userRepository.findAllWithExpiredIncompleteRegistrations(oneWeekAgo);
 
         users.forEach(user -> {
-            String newOTP = StringUtils.generateOTP(OTP_LENGTH);
+            String newOTP = StringUtils.generateRandomString(OTP_LENGTH);
             String hashedPassword = bCryptPasswordEncoder.encode(newOTP);
             user.setPassword(hashedPassword);
 

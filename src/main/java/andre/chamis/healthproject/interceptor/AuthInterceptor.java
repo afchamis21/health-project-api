@@ -5,9 +5,11 @@ import andre.chamis.healthproject.context.ServiceContext;
 import andre.chamis.healthproject.domain.auth.annotation.ClientAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.NonAuthenticated;
+import andre.chamis.healthproject.domain.client.model.Client;
 import andre.chamis.healthproject.domain.exception.UnauthorizedException;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.session.model.Session;
+import andre.chamis.healthproject.service.ClientService;
 import andre.chamis.healthproject.service.JwtService;
 import andre.chamis.healthproject.service.SessionService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,8 +33,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
     private final JwtService jwtService;
+    private final ClientService clientService;
     private final SessionService sessionService;
     private final AuthInterceptorProperties authInterceptorProperties;
+
+    private static final String CLIENT_KEY_HEADER_NAME = "client-key";
 
     /**
      * Pre-handle method of the interceptor, responsible for enforcing authentication and authorization.
@@ -95,16 +100,40 @@ public class AuthInterceptor implements HandlerInterceptor {
         return true;
     }
 
+    /**
+     * Handles client authentication based on the API key provided in the request headers.
+     *
+     * @param request The HttpServletRequest containing the headers.
+     * @return True if authentication is successful; otherwise, an UnauthorizedException is thrown.
+     * @throws UnauthorizedException If authentication fails.
+     */
     private boolean handleClientAuthentication(HttpServletRequest request) {
-        Optional<String> tokenFromHeaders = getTokenFromHeaders(request);
+        Optional<String> apiKeyOptional = getClientKeyFromHeaders(request);
+        String apiKey = apiKeyOptional.orElseThrow(UnauthorizedException::new);
 
-        String token = tokenFromHeaders.orElseThrow(() -> new UnauthorizedException(ErrorMessage.INVALID_JWT));
-        boolean isTokenValid = jwtService.validateClientAccessToken(token);
-        if (!isTokenValid) {
-            throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
+        Optional<Client> clientOptional = clientService.findClientByKey(apiKey);
+        Client client = clientOptional.orElseThrow(UnauthorizedException::new);
+
+        if (!client.isActive()) {
+            throw new UnauthorizedException();
         }
 
         return true;
+    }
+
+    /**
+     * Extracts the API key from the request headers.
+     *
+     * @param request The HttpServletRequest containing the headers.
+     * @return An Optional containing the API key if present; otherwise, an empty Optional.
+     */
+    private Optional<String> getClientKeyFromHeaders(HttpServletRequest request) {
+        String keyHeader = request.getHeader(CLIENT_KEY_HEADER_NAME);
+        if (keyHeader == null || keyHeader.isBlank()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(keyHeader);
     }
 
     /**

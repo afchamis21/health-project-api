@@ -38,16 +38,6 @@ auth:
         duration: 8
         unit: days
 
-    client:
-      access-token:
-        encryption-key: "0b87c2881899ea0fb0cd26322d27935bb489771118acfa533f9fa320ac28235a"
-        duration: 5
-        unit: minutes
-      refresh-token:
-        encryption-key: "182099d0f2320a2344396941594527f1a7685c7b76fb96cb2e7e52a2e4905064"
-        duration: 1
-        unit: hours
-
   session:
     duration: 7
     unit: days

@@ -14,12 +14,12 @@ public class StringUtils {
     private static final String SPECIAL_CHARACTERS = "!@$%&#?";
 
     /**
-     * Generates a random OTP (One-Time Password) with the specified length.
+     * Generates a random String with the specified length containing numbers and letters.
      *
      * @param length The length of the OTP.
      * @return The generated OTP.
      */
-    public static String generateOTP(int length) {
+    public static String generateRandomString(int length) {
         SecureRandom random = new SecureRandom();
         StringBuilder otp = new StringBuilder();
 
@@ -32,26 +32,5 @@ public class StringUtils {
         }
 
         return otp.toString();
-    }
-
-    /**
-     * Generates a random string with the specified length, including letters, numbers, and special characters.
-     *
-     * @param length The length of the random string.
-     * @return The generated random string.
-     */
-    public static String generateRandomString(int length) {
-        SecureRandom random = new SecureRandom();
-        StringBuilder stringBuilder = new StringBuilder();
-
-        String ALLOWED_CHARACTERS = ALLOWED_LETTERS + ALLOWED_NUMBERS + SPECIAL_CHARACTERS;
-
-        for (int i = 0; i < length; i++) {
-            int randomIndex = random.nextInt(ALLOWED_CHARACTERS.length());
-            char randomChar = ALLOWED_CHARACTERS.charAt(randomIndex);
-            stringBuilder.append(randomChar);
-        }
-
-        return stringBuilder.toString();
     }
 }

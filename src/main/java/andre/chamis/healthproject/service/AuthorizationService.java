@@ -2,8 +2,6 @@ package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.domain.auth.dto.RefreshTokensDTO;
 import andre.chamis.healthproject.domain.auth.dto.TokensDTO;
-import andre.chamis.healthproject.domain.client.dto.ClientAuthDTO;
-import andre.chamis.healthproject.domain.client.model.Client;
 import andre.chamis.healthproject.domain.exception.UnauthorizedException;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.session.model.Session;
@@ -30,7 +28,6 @@ public class AuthorizationService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final SessionService sessionService;
-    private final ClientService clientService;
 
     /**
      * Authenticates a user and generates access and refresh tokens.
@@ -116,72 +113,5 @@ public class AuthorizationService {
         refreshTokenService.saveTokenToDatabase(refreshToken);
 
         return new TokensDTO(accessToken, refreshToken, user);
-    }
-
-    /**
-     * Authenticates a client and generates access and refresh tokens.
-     *
-     * @param clientAuthDTO The DTO containing client authentication credentials.
-     * @return The generated access and refresh tokens.
-     * @throws UnauthorizedException If the client credentials are invalid.
-     */
-    public TokensDTO authenticateClient(ClientAuthDTO clientAuthDTO) {
-        Optional<Client> clientOptional = clientService.validateClientCredentials(clientAuthDTO);
-        Client client = clientOptional.orElseThrow(() -> new UnauthorizedException(ErrorMessage.INVALID_CREDENTIALS));
-
-        return generateClientTokens(client);
-    }
-
-    /**
-     * Generates access and refresh tokens for a client.
-     *
-     * @param client The client for which tokens are generated.
-     * @return The generated access and refresh tokens.
-     */
-    private TokensDTO generateClientTokens(Client client) {
-        String accessToken = jwtService.createClientAccessToken(client.getClientName());
-        String refreshToken = jwtService.createClientRefreshToken(client.getClientName());
-
-        refreshTokenService.saveTokenToDatabase(refreshToken);
-
-        return new TokensDTO(accessToken, refreshToken, (GetUserDTO) null);
-    }
-
-    /**
-     * Refreshes client tokens based on the provided refresh token.
-     *
-     * @param refreshTokensDTO The DTO containing the refresh token.
-     * @return The refreshed access and refresh tokens.
-     * @throws UnauthorizedException If the refresh token is invalid.
-     */
-    public TokensDTO refreshClientTokens(RefreshTokensDTO refreshTokensDTO) {
-        String refreshToken = refreshTokensDTO.refreshToken();
-        boolean isTokenValid = jwtService.validateClientRefreshToken(refreshToken);
-
-        if (!isTokenValid) {
-            refreshTokenService.deleteToken(refreshToken);
-            throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
-        }
-
-        boolean isTokenOnDatabase = refreshTokenService.existsOnDatabase(refreshToken);
-        if (!isTokenOnDatabase) {
-            throw new UnauthorizedException(ErrorMessage.INVALID_JWT);
-        }
-
-        String clientName = jwtService.getTokenSubject(refreshToken);
-
-        String accessToken = jwtService.createClientAccessToken(clientName);
-
-        Date refreshTokenExpirationDate = jwtService.getTokenExpiresAt(refreshToken);
-        Duration durationUntilRefreshTokenExpires = Duration.between(
-                Instant.now(),
-                refreshTokenExpirationDate.toInstant()
-        );
-
-        if (durationUntilRefreshTokenExpires.toHours() <= 2) {
-            refreshToken = jwtService.createClientRefreshToken(clientName);
-        }
-
-        return new TokensDTO(accessToken, refreshToken, (GetUserDTO) null);
     }
 }

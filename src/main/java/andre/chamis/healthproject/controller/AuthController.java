@@ -6,7 +6,6 @@ import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.NonAuthenticated;
 import andre.chamis.healthproject.domain.auth.dto.RefreshTokensDTO;
 import andre.chamis.healthproject.domain.auth.dto.TokensDTO;
-import andre.chamis.healthproject.domain.client.dto.ClientAuthDTO;
 import andre.chamis.healthproject.domain.response.ResponseMessage;
 import andre.chamis.healthproject.domain.response.ResponseMessageBuilder;
 import andre.chamis.healthproject.domain.user.dto.LoginDTO;
@@ -65,29 +64,5 @@ public class AuthController {
     public ResponseEntity<ResponseMessage<Void>> logout() {
         authorizationService.logout();
         return ResponseMessageBuilder.build(HttpStatus.OK);
-    }
-
-    /**
-     * Endpoint for authenticating a client.
-     *
-     * @param clientAuthDTO The client authentication DTO containing client credentials.
-     * @return A ResponseEntity containing a ResponseMessage with client tokens on successful authentication.
-     */
-    @PostMapping("client/login")
-    public ResponseEntity<ResponseMessage<TokensDTO>> authenticateClient(@RequestBody ClientAuthDTO clientAuthDTO) {
-        TokensDTO tokensDTO = authorizationService.authenticateClient(clientAuthDTO);
-        return ResponseMessageBuilder.build(tokensDTO, HttpStatus.OK);
-    }
-
-    /**
-     * Endpoint for refreshing client tokens.
-     *
-     * @param refreshTokensDTO The DTO containing the refresh token for the client.
-     * @return A ResponseEntity containing a ResponseMessage with refreshed client tokens on success.
-     */
-    @PostMapping("client/refresh")
-    public ResponseEntity<ResponseMessage<TokensDTO>> refreshClientTokens(@RequestBody RefreshTokensDTO refreshTokensDTO) {
-        TokensDTO tokensDTO = authorizationService.refreshClientTokens(refreshTokensDTO);
-        return ResponseMessageBuilder.build(tokensDTO, HttpStatus.OK);
     }
 }
