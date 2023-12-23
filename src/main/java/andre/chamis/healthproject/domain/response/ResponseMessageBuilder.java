@@ -20,11 +20,11 @@ public class ResponseMessageBuilder {
      * @param httpStatus The HTTP status to include in the response.
      * @return A response entity containing the response message.
      */
-    public static <T> ResponseEntity<ResponseMessage<T>> build(T body, HttpStatus httpStatus){
+    public static <T> ResponseEntity<ResponseMessage<T>> build(T body, HttpStatus httpStatus) {
         Metadata metadata = buildMetadata();
 
         ResponseMessage<T> responseMessage = new ResponseMessage<>();
-        responseMessage.setData(body);
+        responseMessage.setBody(body);
         responseMessage.setMetadata(metadata);
 
         return new ResponseEntity<>(responseMessage, httpStatus);
@@ -36,7 +36,7 @@ public class ResponseMessageBuilder {
      * @param httpStatus The HTTP status to include in the response.
      * @return A response entity containing the response message.
      */
-    public static <Void> ResponseEntity<ResponseMessage<Void>> build(HttpStatus httpStatus){
+    public static <Void> ResponseEntity<ResponseMessage<Void>> build(HttpStatus httpStatus) {
         Metadata metadata = buildMetadata();
 
         ResponseMessage<Void> responseMessage = new ResponseMessage<>();
@@ -51,7 +51,7 @@ public class ResponseMessageBuilder {
      * @param exception The exception with an associated status.
      * @return A response entity containing the response message.
      */
-    public static ResponseEntity<ResponseMessage<Void>> build(ExceptionWithStatusCode exception){
+    public static ResponseEntity<ResponseMessage<Void>> build(ExceptionWithStatusCode exception) {
         Metadata metadata = buildMetadata();
 
         ResponseMessage<Void> responseMessage = new ResponseMessage<>();
@@ -66,7 +66,7 @@ public class ResponseMessageBuilder {
      * @param exception The exception to be included in the response.
      * @return A response entity containing the response message.
      */
-    public static ResponseEntity<ResponseMessage<Void>> build(Exception exception){
+    public static ResponseEntity<ResponseMessage<Void>> build(Exception exception) {
         Metadata metadata = buildMetadata();
 
         ResponseMessage<Void> responseMessage = new ResponseMessage<>();
@@ -80,7 +80,7 @@ public class ResponseMessageBuilder {
      *
      * @return The metadata containing messages.
      */
-    private static Metadata buildMetadata(){
+    private static Metadata buildMetadata() {
         List<String> messages = ServiceContext.getContext().getMetadataMessages();
         Metadata metadata = new Metadata();
         metadata.setMessages(messages);

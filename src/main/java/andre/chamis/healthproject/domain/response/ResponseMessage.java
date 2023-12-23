@@ -17,5 +17,5 @@ public class ResponseMessage<T> {
     /**
      * The metadata associated with the response.
      */
-    private T data;
+    private T body;
 }
