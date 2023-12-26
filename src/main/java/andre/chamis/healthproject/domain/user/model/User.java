@@ -50,6 +50,13 @@ public class User {
     private boolean isActive;
 
     /**
+     * Indicates whether the user has paid or not.
+     */
+    @Column(name = "is_payment_active")
+    private boolean isPaymentActive;
+
+
+    /**
      * The creation date of the user's record.
      */
     @Column(name = "create_dt")

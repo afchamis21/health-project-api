@@ -59,6 +59,7 @@ public class UserService {
 
         user.setCreateDt(Date.from(Instant.now()));
         user.setRegistrationComplete(false);
+        user.setPaymentActive(false);
         user.setActive(false);
 
         String oneTimePassword = StringUtils.generateRandomString(OTP_LENGTH);
@@ -263,6 +264,7 @@ public class UserService {
         refreshTokenService.deleteTokenByUsername(username);
 
         user.setRegistrationComplete(true);
+        user.setActive(true);
         // TODO activar o usuario quando pagar
 
         return GetUserDTO.fromUser(userRepository.save(user));
@@ -354,17 +356,10 @@ public class UserService {
         return users.size();
     }
 
-    /**
-     * Activates a user with the given email.
-     *
-     * @param email The email of the user to activate.
-     * @return A DTO representing the activated user.
-     * @throws BadArgumentException If the user is not found.
-     */
-    public GetUserDTO activateUser(String email) {
+    public GetUserDTO handleRegisterPayment(String email) {
         Optional<User> result = userRepository.findUserByEmail(email);
         User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
-        user.setActive(true);
-        return GetUserDTO.fromUser(userRepository.save(user));
+        user.setPaymentActive(true);
+        return GetUserDTO.fromUser(user);
     }
 }

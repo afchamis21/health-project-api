@@ -47,5 +47,5 @@ auth:
     - "/v3/api-docs/swagger-config"
   cors:
     allowed-uris:
-      - "http://localhost:3000"
+      - "http://localhost:4200"
 

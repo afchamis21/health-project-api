@@ -33,9 +33,9 @@ public class GetUserDTO {
     private Boolean isRegistrationComplete;
 
     /**
-     * Indicates whether the user is active.
+     * Indicates whether the user has paid.
      */
-    private Boolean isActive;
+    private Boolean isPaymentActive;
 
     /**
      * Creates a {@link GetUserDTO} instance from a {@link User} object.
@@ -49,7 +49,7 @@ public class GetUserDTO {
         getUserDTO.setUsername(user.getUsername());
         getUserDTO.setEmail(user.getEmail());
         getUserDTO.setIsRegistrationComplete(user.isRegistrationComplete());
-        getUserDTO.setIsActive(user.isActive());
+        getUserDTO.setIsPaymentActive(user.isPaymentActive());
 
         return getUserDTO;
     }
