@@ -9,6 +9,7 @@ import andre.chamis.healthproject.domain.client.model.Client;
 import andre.chamis.healthproject.domain.exception.UnauthorizedException;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.session.model.Session;
+import andre.chamis.healthproject.properties.AuthInterceptorProperties;
 import andre.chamis.healthproject.service.ClientService;
 import andre.chamis.healthproject.service.JwtService;
 import andre.chamis.healthproject.service.SessionService;

@@ -1,8 +1,5 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/health_project
-    username: postgres
-    password: pass
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -12,8 +9,6 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${SMTP_USERNAME}
-    password: ${SMTP_PASSWORD}
     default-encoding: UTF-8
     properties:
       mail:
@@ -48,4 +43,3 @@ auth:
   cors:
     allowed-uris:
       - "http://localhost:4200"
-

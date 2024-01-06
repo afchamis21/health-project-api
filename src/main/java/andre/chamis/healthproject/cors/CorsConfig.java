@@ -1,5 +1,6 @@
 package andre.chamis.healthproject.cors;
 
+import andre.chamis.healthproject.properties.CorsProperties;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class CorsConfig implements WebMvcConfigurer {
     private final CorsProperties corsProperties;
+
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         String[] allowedUris = corsProperties.getAllowedUris();

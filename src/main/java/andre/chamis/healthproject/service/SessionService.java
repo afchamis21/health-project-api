@@ -4,9 +4,9 @@ package andre.chamis.healthproject.service;
 import andre.chamis.healthproject.context.ServiceContext;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
 import andre.chamis.healthproject.domain.session.model.Session;
-import andre.chamis.healthproject.domain.session.property.SessionProperties;
 import andre.chamis.healthproject.domain.session.repository.SessionRepository;
 import andre.chamis.healthproject.domain.user.model.User;
+import andre.chamis.healthproject.properties.SessionProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package andre.chamis.healthproject.interceptor;
+package andre.chamis.healthproject.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
