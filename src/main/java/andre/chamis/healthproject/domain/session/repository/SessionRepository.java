@@ -60,10 +60,7 @@ public class SessionRepository {
         }
 
         Optional<Session> sessionOptionalFromDatabase = jpaRepository.findById(sessionId);
-        if (sessionOptionalFromDatabase.isPresent()) {
-            Session session = sessionOptionalFromDatabase.get();
-            inMemoryCache.put(session);
-        }
+        sessionOptionalFromDatabase.ifPresent(inMemoryCache::put);
 
         return sessionOptionalFromDatabase;
     }

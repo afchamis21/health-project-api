@@ -44,10 +44,9 @@ public class UserRepository {
         }
 
         Optional<User> userOptionalFromDatabase = userJpaRepository.findById(userId);
-
         userOptionalFromDatabase.ifPresent(userInMemoryCache::put);
 
-        return userJpaRepository.findById(userId);
+        return userOptionalFromDatabase;
     }
 
     /**
