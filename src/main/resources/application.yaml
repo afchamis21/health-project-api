@@ -20,3 +20,4 @@ spring:
 
 stripe:
   private-key: ${STRIPE_KEY}
+  webhook-key: ${STRIPE_WEBHOOK_KEY}

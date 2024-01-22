@@ -42,5 +42,3 @@ auth:
   cors:
     allowed-uris:
       - "http://localhost:4200"
-stripe:
-  webhook-key: whsec_eaa1b816bef694ac370f28b798014efd3dae2bdd293207a360871b675682da13
