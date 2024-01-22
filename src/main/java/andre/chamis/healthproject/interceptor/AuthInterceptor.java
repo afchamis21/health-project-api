@@ -88,12 +88,12 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         Long sessionId = jwtService.getSessionIdFromToken(token);
         Optional<Session> sessionOptional = sessionService.findSessionById(sessionId);
-        Session session = sessionOptional.orElseThrow(() -> new UnauthorizedException(ErrorMessage.EXPIRED_SESSION));
+        Session session = sessionOptional.orElseThrow(UnauthorizedException::new);
 
         boolean isSessionValid = sessionService.validateSessionIsNotExpired(session);
         if (!isSessionValid) {
             sessionService.deleteSessionById(sessionId);
-            throw new UnauthorizedException(ErrorMessage.EXPIRED_SESSION);
+            throw new UnauthorizedException();
         }
 
         ServiceContext.getContext().setSessionId(sessionId);

@@ -75,12 +75,6 @@ public class UserController {
         return ResponseMessageBuilder.build(getUserDTO, HttpStatus.OK);
     }
 
-    @PutMapping("register-payment")
-    public ResponseEntity<ResponseMessage<GetUserDTO>> registerPayment(@RequestParam String email) {
-        GetUserDTO getUserDTO = userService.handleRegisterPayment(email);
-        return ResponseMessageBuilder.build(getUserDTO, HttpStatus.OK);
-    }
-
     /**
      * Endpoint for activating a user.
      *

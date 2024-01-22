@@ -7,20 +7,21 @@ import lombok.Getter;
  */
 @Getter
 public enum ErrorMessage {
-    USER_NOT_FOUND("Usuário não encontrado!"),
-    INVALID_EMAIL("Email inválido!"),
     EMAIL_ALREADY_REGISTERED("O email já está cadastrado"),
-    INCOMPLETE_REGISTRATION("Você ainda não completou seu cadastro! Siga as instruções em seu email"),
-    INACTIVE_USER("Seu usuário não está ativo!"),
-    INVALID_USERNAME("Nome de usuário inválido!"),
-    INVALID_PASSWORD("Senha inválida!"),
-    PASSWORDS_DONT_MATCH("As senhas não conferem!"),
-    INVALID_JWT("Token inválido!"),
     EXPIRED_SESSION("Sua sessão expirou! Faça login novamente"),
+    INACTIVE_USER("Seu usuário não está ativo!"),
+    INCOMPLETE_REGISTRATION("Você ainda não completou seu cadastro! Siga as instruções em seu email"),
     INVALID_CREDENTIALS("Credenciais inválidas!"),
-    USER_ALREADY_HAS_OTP("Você já tem uma OTP, confira em seu email!"),
+    INVALID_EMAIL("Email inválido!"),
+    INVALID_JWT("Token inválido!"),
+    INVALID_PASSWORD("Senha inválida!"),
+    INVALID_USERNAME("Nome de usuário inválido!"),
     MISSING_INFORMATION("A requisição foi enviada com informações faltando!"),
-    NO_SESSION("A sessão em contexto inválido!");
+    MISSING_PRICE_ID("O parâmetro priceId é obrigatório!"),
+    NO_SESSION("A sessão em contexto inválido!"),
+    PASSWORDS_DONT_MATCH("As senhas não conferem!"),
+    USER_ALREADY_HAS_OTP("Você já tem uma OTP, confira em seu email!"),
+    USER_NOT_FOUND("Usuário não encontrado!");
 
     private final String message;
 

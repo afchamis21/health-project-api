@@ -2,6 +2,7 @@ package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.domain.exception.BadArgumentException;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
+import andre.chamis.healthproject.domain.payment.dto.GetIsUserSubscriberResponse;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.user.dto.*;
 import andre.chamis.healthproject.domain.user.model.User;
@@ -28,10 +29,10 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    private final EmailService emailService;
     private final UserRepository userRepository;
     private final SessionService sessionService;
     private final RefreshTokenService refreshTokenService;
-    private final EmailService emailService;
 
     private final int OTP_LENGTH = 6;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
@@ -45,22 +46,61 @@ public class UserService {
      * @throws BadArgumentException If the email is invalid or already exists in the system.
      */
     public GetUserDTO handleRegisterUser(CreateUserDTO createUserDTO) {
+        return GetUserDTO.fromUser(createUser(createUserDTO.email(), Optional.empty()));
+    }
+
+    /**
+     * Handles user registration from the Stripe platform.
+     * If the user with the provided email exists, attaches the Stripe client ID.
+     * If not, creates a new user with the given email and attaches the Stripe client ID.
+     *
+     * @param email          The email of the user.
+     * @param stripeClientId The Stripe client ID to be attached.
+     */
+    public void handleRegisterUserFromStripe(String email, String stripeClientId) {
+        if (userRepository.existsByEmail(email)) {
+            attachStripeClientToUser(email, stripeClientId);
+            return;
+        }
+
+        createUser(email, Optional.of(stripeClientId));
+    }
+
+    /**
+     * Attaches a Stripe client ID to an existing user or creates a new user with the provided email and Stripe client ID.
+     *
+     * @param email          The email of the user.
+     * @param stripeClientId The Stripe client ID to be attached.
+     */
+    private void attachStripeClientToUser(String email, String stripeClientId) {
+        Optional<User> result = userRepository.findUserByEmail(email);
+        if (result.isEmpty()) {
+            createUser(email, Optional.of(stripeClientId));
+            return;
+        }
+
+        User user = result.get();
+        user.setStripeClientId(stripeClientId);
+        userRepository.save(user);
+    }
+
+    /**
+     * Creates a new user with the provided email and optional Stripe client ID.
+     *
+     * @param email          The email of the user.
+     * @param stripeClientId The optional Stripe client ID to be attached.
+     * @return The created user entity.
+     */
+    private User createUser(String email, Optional<String> stripeClientId) {
         User user = new User();
 
-        if (!isEmailValid(createUserDTO.email())) {
-            throw new BadArgumentException(ErrorMessage.INVALID_EMAIL);
-        }
-
-        if (userRepository.existsByEmail(createUserDTO.email())) {
-            throw new BadArgumentException(ErrorMessage.EMAIL_ALREADY_REGISTERED);
-        }
-
-        user.setEmail(createUserDTO.email());
-
+        user.setEmail(email);
         user.setCreateDt(Date.from(Instant.now()));
         user.setRegistrationComplete(false);
         user.setPaymentActive(false);
         user.setActive(false);
+
+        stripeClientId.ifPresent(user::setStripeClientId);
 
         String oneTimePassword = StringUtils.generateRandomString(OTP_LENGTH);
         String hashedPassword = bCryptPasswordEncoder.encode(oneTimePassword);
@@ -76,7 +116,7 @@ public class UserService {
 
         emailService.sendMail(user.getEmail(), emailMessage, "Complete seu cadastro");
 
-        return GetUserDTO.fromUser(userRepository.save(user));
+        return userRepository.save(user);
     }
 
     /**
@@ -265,7 +305,6 @@ public class UserService {
 
         user.setRegistrationComplete(true);
         user.setActive(true);
-        // TODO activar o usuario quando pagar
 
         return GetUserDTO.fromUser(userRepository.save(user));
     }
@@ -356,10 +395,35 @@ public class UserService {
         return users.size();
     }
 
-    public GetUserDTO handleRegisterPayment(String email) {
+    /**
+     * Handles the registration of a payment for the user identified by the provided email.
+     * If the user is found, the payment status is updated to active.
+     *
+     * @param email The email of the user for whom the payment registration is being handled.
+     * @throws BadArgumentException If the user with the provided email is not found.
+     */
+    public void handleRegisterPayment(String email) {
         Optional<User> result = userRepository.findUserByEmail(email);
         User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
         user.setPaymentActive(true);
-        return GetUserDTO.fromUser(user);
+        userRepository.save(user);
+    }
+
+    public GetIsUserSubscriberResponse getIsUserSubscriber(String email) {
+        Optional<User> result = userRepository.findUserByEmail(email);
+        if (result.isEmpty()) {
+            return new GetIsUserSubscriberResponse(false);
+        }
+
+        User user = result.get();
+
+        return new GetIsUserSubscriberResponse(user.isPaymentActive());
+    }
+
+    public void handlePaymentFailed(String email) {
+        Optional<User> result = userRepository.findUserByEmail(email);
+        User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
+        user.setPaymentActive(false);
+        userRepository.save(user);
     }
 }

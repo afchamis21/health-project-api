@@ -7,6 +7,7 @@ import andre.chamis.healthproject.domain.session.model.Session;
 import andre.chamis.healthproject.domain.session.repository.SessionRepository;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.properties.SessionProperties;
+import andre.chamis.healthproject.util.DateUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -78,7 +79,7 @@ public class SessionService {
      * @return True if the session is not expired, otherwise false.
      */
     public boolean validateSessionIsNotExpired(Session session) {
-        return session.getExpireDt().after(Date.from(Instant.now()));
+        return DateUtils.isDateInFuture(session.getExpireDt());
     }
 
     /**

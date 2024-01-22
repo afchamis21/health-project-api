@@ -26,13 +26,12 @@ auth:
     user:
       access-token:
         encryption-key: "38f05b12bc0ca4fb5a61514ebf37069b3905b99dd999f6ca1814dabc5bd1bbc9"
-        duration: 15
+        duration: 1
         unit: minutes
       refresh-token:
         encryption-key: "3d8d415f6e71533c37b830c6f93e5de1d8a3275b18e33f52633be458e7a2e050"
         duration: 8
         unit: days
-
   session:
     duration: 7
     unit: days
@@ -43,3 +42,5 @@ auth:
   cors:
     allowed-uris:
       - "http://localhost:4200"
+stripe:
+  webhook-key: whsec_eaa1b816bef694ac370f28b798014efd3dae2bdd293207a360871b675682da13

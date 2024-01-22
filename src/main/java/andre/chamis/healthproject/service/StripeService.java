@@ -1,34 +1,135 @@
 package andre.chamis.healthproject.service;
 
+import andre.chamis.healthproject.domain.payment.dto.CreateBillingPortalSessionRequest;
+import andre.chamis.healthproject.domain.payment.dto.CreateBillingPortalSessionResponse;
+import andre.chamis.healthproject.domain.payment.dto.CreateCheckoutSessionRequest;
+import andre.chamis.healthproject.domain.payment.dto.GetCheckoutSessionResponse;
 import andre.chamis.healthproject.properties.StripeProperties;
 import com.stripe.Stripe;
+import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Product;
-import com.stripe.model.ProductCollection;
-import com.stripe.param.ProductListParams;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
+import com.stripe.model.*;
+import com.stripe.model.checkout.Session;
+import com.stripe.net.Webhook;
+import com.stripe.param.checkout.SessionCreateParams;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class StripeService {
     private final StripeProperties stripeProperties;
+    private final UserService userService;
 
-    @PostConstruct
-    private void configureStripe() {
-        log.info("No postConstruct do stripe service. Key [{}]", stripeProperties.getPrivateKey());
+    /**
+     * Constructs a new {@code StripeService} with the required dependencies and initializes the Stripe API key.
+     *
+     * @param stripeProperties The configuration properties for Stripe.
+     * @param userService      The service for user-related operations.
+     */
+    public StripeService(StripeProperties stripeProperties, UserService userService) {
+        this.stripeProperties = stripeProperties;
+        this.userService = userService;
         Stripe.apiKey = stripeProperties.getPrivateKey();
+
     }
 
-    public List<Product> getProducts() throws StripeException {
-        ProductListParams params = ProductListParams.builder().setLimit(3L).build();
+    /**
+     * Creates a checkout session using the provided request parameters.
+     *
+     * @param createCheckoutSessionRequest The request object containing parameters for creating a checkout session.
+     * @return The response containing the ID of the created checkout session.
+     * @throws StripeException If an error occurs during the Stripe API call.
+     */
+    public GetCheckoutSessionResponse createCheckoutSession(CreateCheckoutSessionRequest createCheckoutSessionRequest) throws StripeException {
+        SessionCreateParams params = new SessionCreateParams.Builder()
+                .setSuccessUrl(createCheckoutSessionRequest.successUrl())
+                .setCancelUrl(createCheckoutSessionRequest.cancelUrl())
+                .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
+                .setCustomerEmail(createCheckoutSessionRequest.email())
+                .addLineItem(new SessionCreateParams.LineItem.Builder()
+                        .setQuantity(1L)
+                        .setPrice(createCheckoutSessionRequest.priceId())
+                        .build()
+                ).build();
 
-        ProductCollection products = Product.list(params);
-        return products.getData();
+        Session session = Session.create(params);
+        return new GetCheckoutSessionResponse(session.getId());
+    }
+
+    /**
+     * Creates a billing portal session using the provided request parameters.
+     *
+     * @param createBillingPortalSessionRequest The request object containing parameters for creating a billing portal session.
+     * @return The response containing the URL of the created billing portal session.
+     * @throws StripeException If an error occurs during the Stripe API call.
+     */
+    public CreateBillingPortalSessionResponse createBillingPortalSession(CreateBillingPortalSessionRequest createBillingPortalSessionRequest) throws StripeException {
+        var params = new com.stripe.param.billingportal.SessionCreateParams.Builder()
+                .setReturnUrl(createBillingPortalSessionRequest.returnUrl())
+                .setCustomer("cus_PO5zdg6p35vq4E")
+                .build();
+
+        var session = com.stripe.model.billingportal.Session.create(params);
+        return new CreateBillingPortalSessionResponse(session.getUrl());
+    }
+
+    /**
+     * Handles a Stripe webhook request by processing the payload and signature.
+     *
+     * @param payload         The payload of the webhook request.
+     * @param signatureHeader The signature header of the webhook request.
+     * @throws SignatureVerificationException If the Stripe signature cannot be verified.
+     * @throws Exception                      If an error occurs during the webhook event processing.
+     */
+    public void handleWebhook(String payload, String signatureHeader) throws SignatureVerificationException, Exception {
+        Event event = buildEventFromWebhookRequest(payload, signatureHeader);
+
+        EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
+        StripeObject stripeObject;
+        if (dataObjectDeserializer.getObject().isPresent()) {
+            stripeObject = dataObjectDeserializer.getObject().get();
+        } else {
+            log.error("Stripe Data Object is null. Error processing webhook request of type [{}]", event.getType());
+            throw new Exception();
+        }
+
+        switch (event.getType()) {
+            case "invoice.paid" -> handleInvoicePaidEvent((Invoice) stripeObject);
+            case "invoice.payment_failed" -> handleInvoicePaymentFailed((Invoice) stripeObject);
+            case "customer.created" -> handleCustomerCreatedEvent((Customer) stripeObject);
+            default -> log.info("Got request of unhandled type [{}]", event.getType());
+        }
+    }
+
+    /**
+     * Builds a Stripe event from the webhook request payload and signature.
+     *
+     * @param payload         The payload of the webhook request.
+     * @param signatureHeader The signature header of the webhook request.
+     * @return The constructed Stripe event.
+     * @throws SignatureVerificationException If the Stripe signature cannot be verified.
+     */
+    private Event buildEventFromWebhookRequest(String payload, String signatureHeader) throws SignatureVerificationException {
+        return Webhook.constructEvent(
+                payload,
+                signatureHeader,
+                stripeProperties.getWebhookKey()
+        );
+    }
+
+    private void handleCustomerCreatedEvent(Customer customer) {
+        log.info("Got webhook request of type customer.created. Customer: [{}]", customer.getEmail());
+        userService.handleRegisterUserFromStripe(customer.getEmail(), customer.getId());
+    }
+
+    private void handleInvoicePaidEvent(Invoice invoice) {
+        log.info("Got webhook request of type invoice.paid. Customer: [{}]", invoice.getCustomerEmail());
+        userService.handleRegisterPayment(invoice.getCustomerEmail());
+    }
+
+    private void handleInvoicePaymentFailed(Invoice invoice) {
+        log.info("Got webhook request of type invoice.payment_failed. Customer: [{}]", invoice.getCustomerEmail());
+        userService.handlePaymentFailed(invoice.getCustomerEmail());
     }
 }

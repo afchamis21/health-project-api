@@ -21,6 +21,12 @@ public class User {
     private Long userId;
 
     /**
+     * The Stripe client ID associated with the user.
+     */
+    @Column(name = "stripe_client_id")
+    private String stripeClientId;
+
+    /**
      * The unique username of the user.
      */
     @Column(unique = true)

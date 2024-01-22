@@ -9,4 +9,5 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "stripe")
 public class StripeProperties {
     private String privateKey;
+    private String webhookKey;
 }
