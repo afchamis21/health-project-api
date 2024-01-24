@@ -12,7 +12,7 @@ import java.util.List;
  * Repository interface for managing session entities using JPA.
  */
 @Repository
-public interface SessionJpaRepository extends JpaRepository<Session, Long> {
+interface SessionJpaRepository extends JpaRepository<Session, Long> {
     /**
      * Deletes all sessions that have an expiration date before the specified date.
      *

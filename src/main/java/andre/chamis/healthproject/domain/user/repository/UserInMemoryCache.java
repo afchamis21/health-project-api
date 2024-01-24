@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
  * An {@link InMemoryCache} for caching user entities in memory.
  */
 @Repository
-public class UserInMemoryCache extends InMemoryCache<Long, User> {
+class UserInMemoryCache extends InMemoryCache<Long, User> {
 
     public UserInMemoryCache() {
         super(User::getUserId);

@@ -13,7 +13,7 @@ import java.util.Optional;
  * Repository interface for managing user entities.
  */
 @Repository
-public interface UserJpaRepository extends JpaRepository<User, Long> {
+interface UserJpaRepository extends JpaRepository<User, Long> {
 
     /**
      * Checks if a {@link User} with the given email exists.
@@ -48,4 +48,6 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT u FROM User u WHERE u.isRegistrationComplete = ?1 AND u.updateDt < ?2 ")
     List<User> findAllByRegistrationCompleteAndUpdateDtBefore(boolean isRegistrationComplete, Date expirationDt);
+
+    Optional<User> findByStripeClientId(String stripeClientId);
 }

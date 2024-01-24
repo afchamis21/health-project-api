@@ -10,7 +10,7 @@ import java.util.Date;
  * Repository interface for managing refresh token entities using JPA.
  */
 @Repository
-public interface RefreshTokenEntityJpaRepository extends JpaRepository<RefreshTokenEntity, Long> {
+interface RefreshTokenEntityJpaRepository extends JpaRepository<RefreshTokenEntity, Long> {
     /**
      * Deletes a refresh token by its token value.
      *

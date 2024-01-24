@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
  * Repository class for caching session entities in memory.
  */
 @Repository
-public class SessionInMemoryCache extends InMemoryCache<Long, Session> {
+class SessionInMemoryCache extends InMemoryCache<Long, Session> {
 
     public SessionInMemoryCache() {
         super(Session::getSessionId);
