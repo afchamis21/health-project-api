@@ -84,4 +84,10 @@ public class ScheduledJobs {
                 Duration.between(executionStart, executionEnd).toMillis()
         );
     }
+
+    // TODO Criar um job para rodar todo dia 00:00 que vai buscar todos os clientes com subscription do banco
+    //  (talvez uma querie custom jdbc), ou buscar todas as subscriptions e analisar num for
+    //  (a querie deve ser mais rápida e é melhor pq acessar menos o banco = mais barato) e enviar um email para todos
+    //  que a assinatura estiver a 15 dias de vencer e a flag cancelAtPeriodEnd = true, avisando e convidando a
+    //  reassinar. A gente vai estilizar o email certinho mais pra frente, por enquanto não precisa nem do link
 }

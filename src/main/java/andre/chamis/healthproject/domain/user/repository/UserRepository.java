@@ -94,4 +94,8 @@ public class UserRepository {
     public List<User> findAllWithExpiredIncompleteRegistrations(Date expirationDt) {
         return userJpaRepository.findAllByRegistrationCompleteAndUpdateDtBefore(false, expirationDt);
     }
+
+    public Optional<User> findUserByStripeClientId(String stripeClientId) {
+        return userJpaRepository.findByStripeClientId(stripeClientId);
+    }
 }

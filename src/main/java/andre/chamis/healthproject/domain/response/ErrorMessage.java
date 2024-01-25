@@ -21,7 +21,7 @@ public enum ErrorMessage {
     NO_SESSION("A sessão em contexto inválido!"),
     PASSWORDS_DONT_MATCH("As senhas não conferem!"),
     USER_ALREADY_HAS_OTP("Você já tem uma OTP, confira em seu email!"),
-    USER_NOT_FOUND("Usuário não encontrado!");
+    USER_NOT_FOUND("Usuário não encontrado!"), SUBSCRIPTION_NOT_FOUND("Assinatura não encontrada!");
 
     private final String message;
 

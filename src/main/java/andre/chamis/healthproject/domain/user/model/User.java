@@ -29,7 +29,6 @@ public class User {
     /**
      * The unique username of the user.
      */
-    @Column(unique = true)
     private String username;
 
     /**

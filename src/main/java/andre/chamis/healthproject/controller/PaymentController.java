@@ -74,6 +74,7 @@ public class PaymentController {
             log.error("Request failed due to bad 'Stripe-Signature' headers");
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
+            log.error("Unhandled exception during webhook execution", e);
             return ResponseEntity.badRequest().build();
         }
 

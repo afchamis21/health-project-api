@@ -4,6 +4,7 @@ import andre.chamis.healthproject.domain.payment.dto.CreateBillingPortalSessionR
 import andre.chamis.healthproject.domain.payment.dto.CreateBillingPortalSessionResponse;
 import andre.chamis.healthproject.domain.payment.dto.CreateCheckoutSessionRequest;
 import andre.chamis.healthproject.domain.payment.dto.GetCheckoutSessionResponse;
+import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.properties.StripeProperties;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
@@ -65,9 +66,10 @@ public class StripeService {
      * @throws StripeException If an error occurs during the Stripe API call.
      */
     public CreateBillingPortalSessionResponse createBillingPortalSession(CreateBillingPortalSessionRequest createBillingPortalSessionRequest) throws StripeException {
+        User user = userService.findCurrentUser();
         var params = new com.stripe.param.billingportal.SessionCreateParams.Builder()
                 .setReturnUrl(createBillingPortalSessionRequest.returnUrl())
-                .setCustomer("cus_PO5zdg6p35vq4E")
+                .setCustomer(user.getStripeClientId())
                 .build();
 
         var session = com.stripe.model.billingportal.Session.create(params);
@@ -98,6 +100,9 @@ public class StripeService {
             case "invoice.paid" -> handleInvoicePaidEvent((Invoice) stripeObject);
             case "invoice.payment_failed" -> handleInvoicePaymentFailed((Invoice) stripeObject);
             case "customer.created" -> handleCustomerCreatedEvent((Customer) stripeObject);
+            case "customer.subscription.created" -> handleSubscriptionCreatedEvent((Subscription) stripeObject);
+            case "customer.subscription.updated" -> handleSubscriptionUpdatedEvent((Subscription) stripeObject);
+            case "customer.subscription.deleted" -> handleSubscriptionDeletedEvent((Subscription) stripeObject);
             default -> log.info("Got request of unhandled type [{}]", event.getType());
         }
     }
@@ -131,5 +136,20 @@ public class StripeService {
     private void handleInvoicePaymentFailed(Invoice invoice) {
         log.info("Got webhook request of type invoice.payment_failed. Customer: [{}]", invoice.getCustomerEmail());
         userService.handlePaymentFailed(invoice.getCustomerEmail());
+    }
+
+    private void handleSubscriptionCreatedEvent(Subscription subscription) {
+        log.info("Got webhook request of type customer.subscription.created. Customer: [{}]", subscription.getCustomer());
+        userService.handleSubscriptionCreated(subscription);
+    }
+
+    private void handleSubscriptionUpdatedEvent(Subscription subscription) {
+        log.info("Got webhook request of type customer.subscription.updated. Customer: [{}]", subscription.getCustomer());
+        userService.handleSubscriptionUpdated(subscription);
+    }
+
+    private void handleSubscriptionDeletedEvent(Subscription subscription) {
+        log.info("Got webhook request of type customer.subscription.deleted. Customer: [{}]", subscription.getCustomer());
+        userService.handleSubscriptionDeleted(subscription);
     }
 }

@@ -10,6 +10,8 @@ import andre.chamis.healthproject.domain.user.repository.UserRepository;
 import andre.chamis.healthproject.util.DateUtils;
 import andre.chamis.healthproject.util.ObjectUtils;
 import andre.chamis.healthproject.util.StringUtils;
+import com.stripe.model.Subscription;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -33,6 +35,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final SessionService sessionService;
     private final RefreshTokenService refreshTokenService;
+    private final UserSubscriptionService subscriptionService;
 
     private final int OTP_LENGTH = 6;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
@@ -126,14 +129,15 @@ public class UserService {
      * @return True if the password is valid, otherwise false.
      */
     private boolean isPasswordValid(String password) {
+        // TODO refactor to match frontend
         if (password == null) {
             return false;
         }
 
-        String passwordRegex = "^\\S+$";
+        String passwordRegex = "^(?=.*[!@#$%^&*])(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).*$";
         Pattern pattern = Pattern.compile(passwordRegex);
         Matcher matcher = pattern.matcher(password);
-        return password.length() >= 7 && matcher.matches();
+        return password.length() >= 8 && matcher.matches();
     }
 
     /**
@@ -147,7 +151,7 @@ public class UserService {
             return false;
         }
 
-        String usernameRegex = "^[A-Za-z0-9_-]+$";
+        String usernameRegex = "^[A-Za-z0-9_ -]+$";
         Pattern pattern = Pattern.compile(usernameRegex);
         Matcher matcher = pattern.matcher(username);
 
@@ -285,6 +289,7 @@ public class UserService {
      * @return A DTO representing the user after completing the registration.
      * @throws BadArgumentException If the provided information is incomplete or invalid.
      */
+    @Transactional
     public GetUserDTO handleCompleteRegistration(CompleteRegistrationDTO completeRegistrationDTO) {
         if (ObjectUtils.areAnyPropertiesNull(completeRegistrationDTO)) {
             throw new BadArgumentException(ErrorMessage.MISSING_INFORMATION);
@@ -425,5 +430,26 @@ public class UserService {
         User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
         user.setPaymentActive(false);
         userRepository.save(user);
+
+        // TODO enviar email falando que o pagamento falhou e ele perdeu acesso. Enviar instruções para assinar dnv (logar e clicar em fazer upgrade)
+    }
+
+    public void handleSubscriptionDeleted(Subscription subscription) {
+        Optional<User> result = userRepository.findUserByStripeClientId(subscription.getCustomer());
+        User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
+        user.setPaymentActive(false);
+        userRepository.save(user);
+
+        subscriptionService.deleteSubscription(subscription);
+
+        // TODO enviar email falando que a assinatura acabou e convidando para assinar denovo (ver a duração do link de checkout session, talvez vale a pena colocar um no email)
+    }
+
+    public void handleSubscriptionCreated(Subscription subscription) {
+        subscriptionService.createSubscription(subscription);
+    }
+
+    public void handleSubscriptionUpdated(Subscription subscription) {
+        subscriptionService.updateSubscription(subscription);
     }
 }
