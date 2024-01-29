@@ -36,6 +36,7 @@ public class AuthorizationService {
      * @return DTO containing access and refresh tokens.
      */
     public TokensDTO authenticateUser(LoginDTO loginDTO) {
+        log.info("Authenticating User [{}]", loginDTO.email());
         Optional<User> userOptional = userService.validateUserCredential(loginDTO);
         User user = userOptional.orElseThrow(() -> new UnauthorizedException(ErrorMessage.INVALID_CREDENTIALS));
 
@@ -49,6 +50,8 @@ public class AuthorizationService {
      * @return DTO containing new access and refresh tokens.
      */
     public TokensDTO refreshUserTokens(RefreshTokensDTO refreshTokensDTO) {
+        log.info("Preparing to refresh user access tokens");
+
         String refreshToken = refreshTokensDTO.refreshToken();
         boolean isTokenValid = jwtService.validateUserRefreshToken(refreshToken);
         if (!isTokenValid) {
@@ -80,7 +83,11 @@ public class AuthorizationService {
         );
 
         if (durationUntilRefreshTokenExpires.toHours() <= 2) {
+            log.info("User Refresh Token was about to expire, creating a new one!");
+
+            refreshTokenService.deleteToken(refreshToken);
             refreshToken = jwtService.createUserRefreshToken(username, session.getSessionId());
+            refreshTokenService.saveTokenToDatabase(refreshToken);
         }
 
         return new TokensDTO(accessToken, refreshToken, (GetUserDTO) null);
@@ -91,6 +98,7 @@ public class AuthorizationService {
      */
     public void logout() {
         User currentUser = userService.findCurrentUser();
+        log.info("Logging out user [{}]", currentUser.getEmail());
         refreshTokenService.deleteTokenByUsername(currentUser.getUsername());
         sessionService.deleteCurrentSession();
     }
@@ -103,9 +111,11 @@ public class AuthorizationService {
      */
     private TokensDTO generateSessionAndTokens(User user) {
         // Create a session for the user.
+        log.info("Generating new session for user [{}]", user);
         Session session = sessionService.createSession(user);
 
         // Generate access and refresh token for the user.
+        log.info("Generating access and refresh tokens for user [{}]", user.getEmail());
         String accessToken = jwtService.createUserAccessToken(user.getUsername(), session.getSessionId());
         String refreshToken = jwtService.createUserRefreshToken(user.getUsername(), session.getSessionId());
 

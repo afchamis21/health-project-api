@@ -37,6 +37,8 @@ public class GetUserDTO {
      */
     private Boolean isPaymentActive;
 
+    private Boolean isCustomer;
+
     /**
      * Creates a {@link GetUserDTO} instance from a {@link User} object.
      *
@@ -50,6 +52,7 @@ public class GetUserDTO {
         getUserDTO.setEmail(user.getEmail());
         getUserDTO.setIsRegistrationComplete(user.isRegistrationComplete());
         getUserDTO.setIsPaymentActive(user.isPaymentActive());
+        getUserDTO.setIsCustomer(null != user.getStripeClientId());
 
         return getUserDTO;
     }

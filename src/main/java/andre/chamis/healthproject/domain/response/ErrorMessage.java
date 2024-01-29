@@ -20,8 +20,10 @@ public enum ErrorMessage {
     MISSING_PRICE_ID("O parâmetro priceId é obrigatório!"),
     NO_SESSION("A sessão em contexto inválido!"),
     PASSWORDS_DONT_MATCH("As senhas não conferem!"),
+    SUBSCRIPTION_NOT_FOUND("Assinatura não encontrada!"),
     USER_ALREADY_HAS_OTP("Você já tem uma OTP, confira em seu email!"),
-    USER_NOT_FOUND("Usuário não encontrado!"), SUBSCRIPTION_NOT_FOUND("Assinatura não encontrada!");
+    USER_ALREADY_REGISTERED("Um usuário já está registrado com esse email!"),
+    USER_NOT_FOUND("Usuário não encontrado!");
 
     private final String message;
 

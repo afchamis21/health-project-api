@@ -3,6 +3,7 @@ package andre.chamis.healthproject.util;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.SecureRandom;
+import java.util.List;
 
 /**
  * Utility class for generating random strings and OTPs.
@@ -32,5 +33,87 @@ public class StringUtils {
         }
 
         return otp.toString();
+    }
+
+    /**
+     * Checks if the given string contains uppercase letters.
+     *
+     * @param string The input string.
+     * @return True if the string contains uppercase letters, false otherwise.
+     */
+    public static boolean containsUpperCaseLetters(String string) {
+        if (string == null || string.isEmpty()) {
+            return false;
+        }
+
+        for (String ch : string.split("")) {
+            if (ch.equals(ch.toUpperCase())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the given string contains lowercase letters.
+     *
+     * @param string The input string.
+     * @return True if the string contains lowercase letters, false otherwise.
+     */
+    public static boolean containsLowerCaseLetters(String string) {
+        if (string == null || string.isEmpty()) {
+            return false;
+        }
+
+        for (String ch : string.split("")) {
+            if (ch.equals(ch.toLowerCase())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the given string contains digits.
+     *
+     * @param string The input string.
+     * @return True if the string contains digits, false otherwise.
+     */
+    public static boolean containsDigits(String string) {
+        if (string == null || string.isEmpty()) {
+            return false;
+        }
+
+        for (char ch : string.toCharArray()) {
+            if (Character.isDigit(ch)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Checks if the given string contains special characters.
+     *
+     * @param string The input string.
+     * @return True if the string contains special characters, false otherwise.
+     */
+    public static boolean containsSpecialChars(String string) {
+        if (string == null || string.isEmpty()) {
+            return false;
+        }
+
+        List<String> specialChars = List.of("!", "@", "#", "$", "%", "^", "&", "*");
+
+        for (String ch : string.split("")) {
+            if (specialChars.contains(ch)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

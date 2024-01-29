@@ -9,6 +9,7 @@ import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.properties.SessionProperties;
 import andre.chamis.healthproject.util.DateUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -18,6 +19,7 @@ import java.util.Optional;
 /**
  * Service class responsible for handling user sessions.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SessionService {
@@ -37,6 +39,9 @@ public class SessionService {
         session.setExpireDt(Date.from(Instant.now().plus(
                 sessionProperties.getDuration(), sessionProperties.getUnit()
         )));
+
+        log.info("New session created for user [{}]. Expires at [{}]", user.getEmail(), session.getExpireDt());
+
         return sessionRepository.save(session);
     }
 
@@ -46,6 +51,7 @@ public class SessionService {
      * @return The number of deleted expired sessions.
      */
     public int deleteAllExpired() {
+        log.info("Deleting all expired sessions currently on the database!");
         return sessionRepository.deleteAllExpired();
     }
 
@@ -56,6 +62,7 @@ public class SessionService {
      * @return An optional containing the retrieved session, if found.
      */
     public Optional<Session> findSessionById(Long sessionId) {
+        log.info("Searching for session with id [{}]", sessionId);
         return sessionRepository.findById(sessionId);
     }
 
@@ -65,8 +72,10 @@ public class SessionService {
      * @return The ID of the user associated with the current session.
      */
     public Long getCurrentUserId() {
+        log.info("Attempting to get current user id");
         Long sessionId = ServiceContext.getContext().getSessionId();
         Optional<Session> sessionOptional = findSessionById(sessionId);
+        log.debug("Current session exists [{}]", sessionOptional.isPresent());
         Session session = sessionOptional.orElseThrow(ForbiddenException::new);
         return session.getUserId();
     }
@@ -79,6 +88,9 @@ public class SessionService {
      * @return True if the session is not expired, otherwise false.
      */
     public boolean validateSessionIsNotExpired(Session session) {
+        log.info("Validating if session is expired. Session expired date [{}]. Current Date [{}]",
+                session.getExpireDt(), Date.from(Instant.now())
+        );
         return DateUtils.isDateInFuture(session.getExpireDt());
     }
 
@@ -86,6 +98,7 @@ public class SessionService {
      * Deletes the current session.
      */
     public void deleteCurrentSession() {
+        log.info("Deleting current session. Session Id [{}]", ServiceContext.getContext().getSessionId());
         deleteSessionById(ServiceContext.getContext().getSessionId());
     }
 
@@ -95,6 +108,13 @@ public class SessionService {
      * @param sessionId The ID of the session to delete.
      */
     public void deleteSessionById(Long sessionId) {
+        log.info("Deleting session with id [{}]", sessionId);
         sessionRepository.deleteSessionById(sessionId);
+    }
+
+    public void deleteAllUserSessions() {
+        Long currentUserId = getCurrentUserId();
+        log.info("Deleting all sessions for current user [{}]", currentUserId);
+        sessionRepository.deleteSessionsByUserId(currentUserId);
     }
 }

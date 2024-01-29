@@ -16,6 +16,8 @@ import com.stripe.param.checkout.SessionCreateParams;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Slf4j
 @Service
 public class StripeService {
@@ -43,11 +45,35 @@ public class StripeService {
      * @throws StripeException If an error occurs during the Stripe API call.
      */
     public GetCheckoutSessionResponse createCheckoutSession(CreateCheckoutSessionRequest createCheckoutSessionRequest) throws StripeException {
+        Optional<User> result = userService.getUserIfIsCustomer(createCheckoutSessionRequest.email());
+
+        return result.isPresent()
+                ? createCheckoutSessionForExistingCustomer(createCheckoutSessionRequest, result.get().getStripeClientId())
+                : createCheckoutSessionWithEmailForNewCustomer(createCheckoutSessionRequest);
+    }
+
+    private GetCheckoutSessionResponse createCheckoutSessionWithEmailForNewCustomer(CreateCheckoutSessionRequest createCheckoutSessionRequest) throws StripeException {
         SessionCreateParams params = new SessionCreateParams.Builder()
                 .setSuccessUrl(createCheckoutSessionRequest.successUrl())
                 .setCancelUrl(createCheckoutSessionRequest.cancelUrl())
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
                 .setCustomerEmail(createCheckoutSessionRequest.email())
+                .addLineItem(new SessionCreateParams.LineItem.Builder()
+                        .setQuantity(1L)
+                        .setPrice(createCheckoutSessionRequest.priceId())
+                        .build()
+                ).build();
+
+        Session session = Session.create(params);
+        return new GetCheckoutSessionResponse(session.getId());
+    }
+
+    private GetCheckoutSessionResponse createCheckoutSessionForExistingCustomer(CreateCheckoutSessionRequest createCheckoutSessionRequest, String stripeClientId) throws StripeException {
+        SessionCreateParams params = new SessionCreateParams.Builder()
+                .setSuccessUrl(createCheckoutSessionRequest.successUrl())
+                .setCancelUrl(createCheckoutSessionRequest.cancelUrl())
+                .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
+                .setCustomer(stripeClientId)
                 .addLineItem(new SessionCreateParams.LineItem.Builder()
                         .setQuantity(1L)
                         .setPrice(createCheckoutSessionRequest.priceId())

@@ -77,7 +77,14 @@ public class User {
     public String toString() {
         return "User{" +
                 "userId=" + userId +
+                ", stripeClientId='" + stripeClientId + '\'' +
+                ", username='" + username + '\'' +
                 ", email='" + email + '\'' +
+                ", isRegistrationComplete=" + isRegistrationComplete +
+                ", isActive=" + isActive +
+                ", isPaymentActive=" + isPaymentActive +
+                ", createDt=" + createDt +
+                ", updateDt=" + updateDt +
                 '}';
     }
 }

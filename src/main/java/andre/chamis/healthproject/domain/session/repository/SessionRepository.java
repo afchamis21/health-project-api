@@ -4,6 +4,7 @@ import andre.chamis.healthproject.domain.exception.ForbiddenException;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.session.model.Session;
 import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -83,5 +84,11 @@ public class SessionRepository {
     public void deleteSessionById(Long sessionId) {
         jpaRepository.deleteById(sessionId);
         inMemoryCache.remove(sessionId);
+    }
+
+    @Transactional
+    public void deleteSessionsByUserId(Long userId) {
+        List<Session> sessions = jpaRepository.deleteAllByUserId(userId);
+        inMemoryCache.deleteFromList(sessions);
     }
 }

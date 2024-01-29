@@ -49,6 +49,7 @@ public class UserService {
      * @throws BadArgumentException If the email is invalid or already exists in the system.
      */
     public GetUserDTO handleRegisterUser(CreateUserDTO createUserDTO) {
+        log.info("Attempting to register a new User with payload [{}]", createUserDTO);
         return GetUserDTO.fromUser(createUser(createUserDTO.email(), Optional.empty()));
     }
 
@@ -95,9 +96,20 @@ public class UserService {
      * @return The created user entity.
      */
     private User createUser(String email, Optional<String> stripeClientId) {
+        if (!isEmailValid(email)) {
+            throw new BadArgumentException(ErrorMessage.INVALID_EMAIL);
+        }
+
+        log.debug("Checking if user is already registered with email [{}]", email);
+        if (userRepository.existsByEmail(email)) {
+            log.error("User is already registered with email [{}]", email);
+            throw new BadArgumentException(ErrorMessage.USER_ALREADY_REGISTERED);
+        }
+
         User user = new User();
 
         user.setEmail(email);
+        user.setUsername(email);
         user.setCreateDt(Date.from(Instant.now()));
         user.setRegistrationComplete(false);
         user.setPaymentActive(false);
@@ -105,9 +117,17 @@ public class UserService {
 
         stripeClientId.ifPresent(user::setStripeClientId);
 
+        log.debug("User instantiated [{}]", user);
+
         String oneTimePassword = StringUtils.generateRandomString(OTP_LENGTH);
         String hashedPassword = bCryptPasswordEncoder.encode(oneTimePassword);
         user.setPassword(hashedPassword);
+
+        log.debug("Generated OTP for user [{}]", user.getEmail());
+
+        user = userRepository.save(user);
+
+        log.info("User [{}] saved to database", user.getEmail());
 
         String emailMessage = """
                 Olá aqui está a sua senha provisória para continuar o cadastro em nosso site!
@@ -117,9 +137,11 @@ public class UserService {
                 Você será solicitado a mudar sua senha e atualizar as informações quando fizer login pela primeira vez!
                 """.replace("{{OTP}}", oneTimePassword);
 
-        emailService.sendMail(user.getEmail(), emailMessage, "Complete seu cadastro");
+        emailService.sendSimpleMail(user.getEmail(), emailMessage, "Complete seu cadastro");
 
-        return userRepository.save(user);
+        log.info("OTP Email sent to user [{}]", user.getEmail());
+
+        return user;
     }
 
     /**
@@ -129,15 +151,31 @@ public class UserService {
      * @return True if the password is valid, otherwise false.
      */
     private boolean isPasswordValid(String password) {
-        // TODO refactor to match frontend
         if (password == null) {
             return false;
         }
 
-        String passwordRegex = "^(?=.*[!@#$%^&*])(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).*$";
-        Pattern pattern = Pattern.compile(passwordRegex);
-        Matcher matcher = pattern.matcher(password);
-        return password.length() >= 8 && matcher.matches();
+        if (password.length() < 8) {
+            return false;
+        }
+
+        if (!StringUtils.containsUpperCaseLetters(password)) {
+            return false;
+        }
+
+        if (!StringUtils.containsLowerCaseLetters(password)) {
+            return false;
+        }
+
+        if (!StringUtils.containsDigits(password)) {
+            return false;
+        }
+
+        if (!StringUtils.containsSpecialChars(password)) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -202,8 +240,11 @@ public class UserService {
      * @throws ForbiddenException If there is no current user.
      */
     public User findCurrentUser() {
+        log.debug("Attempting to find currentUser");
         Long currentUserId = sessionService.getCurrentUserId();
+        log.debug("Current user id [{}]", currentUserId);
         Optional<User> userOptional = findUserById(currentUserId);
+        log.info("Found [{}]", userOptional);
         return userOptional.orElseThrow(ForbiddenException::new);
     }
 
@@ -214,7 +255,10 @@ public class UserService {
      * @return An optional User object with the given ID, otherwise empty.
      */
     public Optional<User> findUserById(Long userId) {
-        return userRepository.findById(userId);
+        log.info("Searching for user with id [{}]", userId);
+        Optional<User> user = userRepository.findById(userId);
+        log.debug("Got result from userFindById [{}]", user);
+        return user;
     }
 
     /**
@@ -226,9 +270,10 @@ public class UserService {
      */
     public GetUserDTO getUserById(Optional<Long> userIdOptional) {
         Long userId = userIdOptional.orElse(sessionService.getCurrentUserId());
+        log.info("Getting user with id [{}]", userId);
         Optional<User> userOptional = findUserById(userId);
         User user = userOptional.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
-
+        log.debug("Found user [{}]", user);
         return GetUserDTO.fromUser(user);
     }
 
@@ -244,38 +289,36 @@ public class UserService {
         boolean needsReauthentication = false;
         User user = findCurrentUser();
 
+        log.info("Updating user [{}] with payload [{}]", user.getEmail(), updateUserDTO);
+
         String username = user.getUsername();
 
-        if (updateUserDTO.username() != null) {
+        if (updateUserDTO.username() != null && !updateUserDTO.username().isBlank()) {
             if (!isUsernameValid(updateUserDTO.username())) {
                 throw new BadArgumentException(ErrorMessage.INVALID_USERNAME);
             }
             user.setUsername(updateUserDTO.username());
             updated = true;
-            needsReauthentication = true;
+            log.debug("User [{}] updated username", user.getEmail());
         }
 
-        if (updateUserDTO.email() != null) {
-            if (!isEmailValid(updateUserDTO.email())) {
-                throw new BadArgumentException(ErrorMessage.INVALID_EMAIL);
-            }
-
-            user.setEmail(updateUserDTO.email());
-            updated = true;
-        }
-
-        if (updateUserDTO.password() != null) {
+        if (updateUserDTO.password() != null && !updateUserDTO.password().isBlank()) {
             setUserPassword(user, updateUserDTO.password(), updateUserDTO.confirmPassword());
             updated = true;
             needsReauthentication = true;
+            log.debug("User [{}] updated password", user.getEmail());
         }
+
+        log.debug("Was user updated [{}]", updated);
 
         if (updated) {
             user = userRepository.save(user);
         }
 
+        log.debug("User needs to be reauthenticated [{}]", needsReauthentication);
+
         if (needsReauthentication) {
-            sessionService.deleteCurrentSession();
+            sessionService.deleteAllUserSessions();
             refreshTokenService.deleteTokenByUsername(username);
         }
 
@@ -297,6 +340,8 @@ public class UserService {
 
         User user = findCurrentUser();
 
+        log.info("Attempting to complete registration for user [{}] with payload [{}]", user.getUserId(), completeRegistrationDTO);
+
         if (!isUsernameValid(completeRegistrationDTO.username())) {
             throw new BadArgumentException(ErrorMessage.INVALID_USERNAME);
         }
@@ -310,6 +355,8 @@ public class UserService {
 
         user.setRegistrationComplete(true);
         user.setActive(true);
+
+        log.info("User [{}] successfully activated", user.getEmail());
 
         return GetUserDTO.fromUser(userRepository.save(user));
     }
@@ -344,6 +391,8 @@ public class UserService {
      * @throws BadArgumentException If the user is not found.
      */
     public GetUserDTO activateUser(Long userId) {
+        log.info("Activating user [{}]", userId);
+
         Optional<User> result = findUserById(userId);
         User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
         user.setActive(true);
@@ -358,6 +407,8 @@ public class UserService {
      * @throws BadArgumentException If the user is not found.
      */
     public GetUserDTO deactivateUser(Long userId) {
+        log.info("Deactivating user [{}]", userId);
+
         Optional<User> result = findUserById(userId);
         User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
         user.setActive(false);
@@ -378,7 +429,10 @@ public class UserService {
         Date oneWeekAgo = DateUtils.calculateOneWeekAgo();
         List<User> users = userRepository.findAllWithExpiredIncompleteRegistrations(oneWeekAgo);
 
+        log.info("Updating [{}] passwords for incomplete registrations", users.size());
+
         users.forEach(user -> {
+            log.info("Updated password for user [{}]", user.getEmail());
             String newOTP = StringUtils.generateRandomString(OTP_LENGTH);
             String hashedPassword = bCryptPasswordEncoder.encode(newOTP);
             user.setPassword(hashedPassword);
@@ -394,7 +448,8 @@ public class UserService {
                     Clique aqui para concluir seu cadastro
                     """.replace("{{OTP}}", newOTP);
 
-            emailService.sendMail(user.getEmail(), emailMessage, "Conclua seu cadastro!");
+            emailService.sendSimpleMail(user.getEmail(), emailMessage, "Conclua seu cadastro!");
+            log.info("OTP Email sent to user [{}]", user.getEmail());
         });
 
         return users.size();
@@ -408,33 +463,62 @@ public class UserService {
      * @throws BadArgumentException If the user with the provided email is not found.
      */
     public void handleRegisterPayment(String email) {
+        log.info("Trying to find user [{}] on database to register payment", email);
         Optional<User> result = userRepository.findUserByEmail(email);
-        User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
+
+        User user = result.orElseGet(() -> {
+            log.info("User was not on database. Webhook invoice.paid must have gotten here before customer.created! Creating a new one");
+            return createUser(email, Optional.empty());
+        });
+
         user.setPaymentActive(true);
         userRepository.save(user);
     }
 
     public GetIsUserSubscriberResponse getIsUserSubscriber(String email) {
+        log.info("Checking if user [{}] is subscribed", email);
+
         Optional<User> result = userRepository.findUserByEmail(email);
         if (result.isEmpty()) {
+            log.info("User [{}] not found", email);
             return new GetIsUserSubscriberResponse(false);
         }
 
         User user = result.get();
 
+        log.info("User [{}] is updated [{}]", email, user.isPaymentActive());
+
         return new GetIsUserSubscriberResponse(user.isPaymentActive());
     }
 
     public void handlePaymentFailed(String email) {
+        log.info("Payment failed for user [{}] setting isPaymentActive false", email);
+
+
         Optional<User> result = userRepository.findUserByEmail(email);
         User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
+        boolean wasUserPaymentActive = user.isPaymentActive();
+
         user.setPaymentActive(false);
+
         userRepository.save(user);
 
-        // TODO enviar email falando que o pagamento falhou e ele perdeu acesso. Enviar instruções para assinar dnv (logar e clicar em fazer upgrade)
+        if (wasUserPaymentActive) {
+            emailService.sendSimpleMail(user.getEmail(), """
+                            Olá, parece que tivemos um problema ao processar seu pagamento...
+                                                
+                            Por causa disso, vamos revogar seu acesso a plataforma. Para retomar seu acesso, acesse nosso site _aqui_, e faça o pagamento novamente.
+                            """,
+                    "Erro ao processar pagamento"
+            );
+        }
     }
 
     public void handleSubscriptionDeleted(Subscription subscription) {
+        log.info("Subscription [{}] from user [{}] ended. Deleting and setting isPaymentActive false it!",
+                subscription.getId(), subscription.getCustomer()
+        );
+
         Optional<User> result = userRepository.findUserByStripeClientId(subscription.getCustomer());
         User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
         user.setPaymentActive(false);
@@ -442,7 +526,13 @@ public class UserService {
 
         subscriptionService.deleteSubscription(subscription);
 
-        // TODO enviar email falando que a assinatura acabou e convidando para assinar denovo (ver a duração do link de checkout session, talvez vale a pena colocar um no email)
+        emailService.sendSimpleMail(user.getEmail(), """
+                        Olá, sua assinatura para usar nosso aplicativo chegou ao fim...
+                                            
+                        Convidamos você a retomar sua assinatura por especial *aqui*
+                        """,
+                "Sua assinatura acabou"
+        );
     }
 
     public void handleSubscriptionCreated(Subscription subscription) {
@@ -451,5 +541,19 @@ public class UserService {
 
     public void handleSubscriptionUpdated(Subscription subscription) {
         subscriptionService.updateSubscription(subscription);
+    }
+
+    public Optional<User> getUserIfIsCustomer(String email) {
+        Optional<User> result = userRepository.findUserByEmail(email);
+
+        if (result.isEmpty()) {
+            return Optional.empty();
+        }
+
+        User user = result.get();
+
+        return null != user.getStripeClientId() && !user.getStripeClientId().isBlank()
+                ? result
+                : Optional.empty();
     }
 }

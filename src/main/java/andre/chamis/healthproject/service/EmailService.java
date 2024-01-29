@@ -1,6 +1,7 @@
 package andre.chamis.healthproject.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 /**
  * Service class responsible for sending emails asynchronously.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
@@ -26,7 +28,8 @@ public class EmailService {
      * @param subject The subject of the email.
      */
     @Async
-    public void sendMail(String to, String message, String subject) {
+    public void sendSimpleMail(String to, String message, String subject) {
+        log.info("Sending email to [{}]. Subject [{}]. Message [{}].", to, subject, message);
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setSubject(subject);
         mailMessage.setFrom(fromEmail);
