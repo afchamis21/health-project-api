@@ -8,6 +8,7 @@ import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.UpdateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMembersDTO;
+import andre.chamis.healthproject.service.WorkspaceMemberService;
 import andre.chamis.healthproject.service.WorkspaceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("workspace")
 public class WorkspaceController {
     private final WorkspaceService workspaceService;
+    private final WorkspaceMemberService workspaceMemberService;
 
     @PostMapping("create")
     public ResponseEntity<ResponseMessage<GetWorkspaceDTO>> createWorkspace(@RequestBody CreateWorkspaceDTO createWorkspaceDTO) {
@@ -59,19 +61,19 @@ public class WorkspaceController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        GetWorkspaceMembersDTO body = workspaceService.getAllMembersOfWorkspace(workspaceId, page, size);
+        GetWorkspaceMembersDTO body = workspaceMemberService.getAllMembersOfWorkspace(workspaceId, page, size);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 
     @PostMapping("{workspaceId}/members")
     public ResponseEntity<ResponseMessage<GetWorkspaceMemberDTO>> addMember(@PathVariable Long workspaceId, @RequestParam String email) {
-        GetWorkspaceMemberDTO body = workspaceService.addUserToWorkspace(workspaceId, email);
+        GetWorkspaceMemberDTO body = workspaceMemberService.addUserToWorkspace(workspaceId, email);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 
     @DeleteMapping("{workspaceId}/members")
     public ResponseEntity<ResponseMessage<Void>> removeMember(@PathVariable Long workspaceId, @RequestParam Long userId) {
-        workspaceService.removeUserFromWorkspace(workspaceId, userId);
+        workspaceMemberService.removeUserFromWorkspace(workspaceId, userId);
         return ResponseMessageBuilder.build(HttpStatus.OK);
     }
 }
