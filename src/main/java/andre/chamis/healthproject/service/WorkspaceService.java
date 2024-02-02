@@ -23,7 +23,8 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 
-// TODO dividir em dois serviços,
+// TODO dividir em dois serviços (workspaces e members), e fazer a parte de ativar e desativar temporariamente os
+//  workspace members
 
 @Slf4j
 @Service
