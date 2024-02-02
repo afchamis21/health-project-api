@@ -8,6 +8,7 @@ import andre.chamis.healthproject.domain.user.dto.CompleteRegistrationDTO;
 import andre.chamis.healthproject.domain.user.dto.CreateUserDTO;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.user.dto.UpdateUserDTO;
+import andre.chamis.healthproject.domain.workspace.dto.GetWorkspacesDTO;
 import andre.chamis.healthproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -112,5 +113,14 @@ public class UserController {
     public ResponseEntity<ResponseMessage<Void>> deleteUser(@RequestParam Long userId) {
         userService.deleteUser(userId);
         return ResponseMessageBuilder.build(HttpStatus.OK);
+    }
+
+    @GetMapping("workspaces")
+    public ResponseEntity<ResponseMessage<GetWorkspacesDTO>> getUserWorkspaces(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        GetWorkspacesDTO body = userService.getUserWorkspaces(page, size);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 }

@@ -23,7 +23,12 @@ public enum ErrorMessage {
     SUBSCRIPTION_NOT_FOUND("Assinatura não encontrada!"),
     USER_ALREADY_HAS_OTP("Você já tem uma OTP, confira em seu email!"),
     USER_ALREADY_REGISTERED("Um usuário já está registrado com esse email!"),
-    USER_NOT_FOUND("Usuário não encontrado!");
+    USER_NOT_FOUND("Usuário não encontrado!"),
+    WORKSPACE_OWNERSHIP("Você deve ser dono dessa workspace para fazer isso!"),
+    WORKSPACE_NOT_FOUND("Workspace não encontrada!"),
+    USER_ALREADY_MEMBER("O usuário já está adicionado à workspace!"),
+    INACTIVE_WORKSPACE("Essa workspace está desativada!"),
+    CAN_NOT_DELETE_ACTIVE_WORKSPACE("Para deletar uma workspace, você deve primeiro desativar ela!");
 
     private final String message;
 

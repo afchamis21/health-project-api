@@ -1,7 +1,6 @@
 package andre.chamis.healthproject.context;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 
@@ -20,12 +19,12 @@ public class ServiceContext {
     private static ThreadLocal<ServiceContext> threadLocal = new ThreadLocal<>();
     private String executionId;
 
-    @Getter
     private List<String> metadataMessages = new ArrayList<>();
     private List<Exception> exceptions = new ArrayList<>();
     private Instant startTime;
     private Instant endTime;
     private Long sessionId;
+    private Long userId;
 
     /**
      * Retrieves the current ServiceContext associated with the current thread. If no context exists, a new one is created.
@@ -45,7 +44,7 @@ public class ServiceContext {
      */
     public synchronized static ServiceContext getContext(String executionId) {
         ServiceContext context = threadLocal.get();
-        if (context == null){
+        if (context == null) {
             return createNewContext(executionId);
         }
 
@@ -86,7 +85,7 @@ public class ServiceContext {
     /**
      * Clears the context associated with the current thread.
      */
-    public static void clearContext(){
+    public static void clearContext() {
         threadLocal.remove();
         MDC.remove(EXECUTION_ID_KEY);
     }
@@ -105,7 +104,7 @@ public class ServiceContext {
      *
      * @param message The message to add.
      */
-    public synchronized static void addMessage(String message){
+    public synchronized static void addMessage(String message) {
         getContext().metadataMessages.add(message);
     }
 }

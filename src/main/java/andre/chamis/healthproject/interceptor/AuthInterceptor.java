@@ -97,6 +97,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         ServiceContext.getContext().setSessionId(sessionId);
+        ServiceContext.getContext().setUserId(session.getUserId());
 
         return true;
     }

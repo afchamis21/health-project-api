@@ -1,5 +1,6 @@
 package andre.chamis.healthproject.service;
 
+import andre.chamis.healthproject.context.ServiceContext;
 import andre.chamis.healthproject.domain.exception.BadArgumentException;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
 import andre.chamis.healthproject.domain.payment.dto.GetIsUserSubscriberResponse;
@@ -7,6 +8,8 @@ import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.user.dto.*;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.domain.user.repository.UserRepository;
+import andre.chamis.healthproject.domain.workspace.dto.GetWorkspacesDTO;
+import andre.chamis.healthproject.domain.workspace.repository.WorkspaceRepository;
 import andre.chamis.healthproject.util.DateUtils;
 import andre.chamis.healthproject.util.ObjectUtils;
 import andre.chamis.healthproject.util.StringUtils;
@@ -34,6 +37,7 @@ public class UserService {
     private final EmailService emailService;
     private final UserRepository userRepository;
     private final SessionService sessionService;
+    private final WorkspaceRepository workspaceRepository;
     private final RefreshTokenService refreshTokenService;
     private final UserSubscriptionService subscriptionService;
 
@@ -95,7 +99,7 @@ public class UserService {
      * @param stripeClientId The optional Stripe client ID to be attached.
      * @return The created user entity.
      */
-    private User createUser(String email, Optional<String> stripeClientId) {
+    public User createUser(String email, Optional<String> stripeClientId) {
         if (!isEmailValid(email)) {
             throw new BadArgumentException(ErrorMessage.INVALID_EMAIL);
         }
@@ -241,7 +245,7 @@ public class UserService {
      */
     public User findCurrentUser() {
         log.debug("Attempting to find currentUser");
-        Long currentUserId = sessionService.getCurrentUserId();
+        Long currentUserId = ServiceContext.getContext().getUserId();
         log.debug("Current user id [{}]", currentUserId);
         Optional<User> userOptional = findUserById(currentUserId);
         log.info("Found [{}]", userOptional);
@@ -269,7 +273,7 @@ public class UserService {
      * @throws BadArgumentException If the user is not found.
      */
     public GetUserDTO getUserById(Optional<Long> userIdOptional) {
-        Long userId = userIdOptional.orElse(sessionService.getCurrentUserId());
+        Long userId = userIdOptional.orElse(ServiceContext.getContext().getUserId());
         log.info("Getting user with id [{}]", userId);
         Optional<User> userOptional = findUserById(userId);
         User user = userOptional.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
@@ -522,6 +526,7 @@ public class UserService {
         Optional<User> result = userRepository.findUserByStripeClientId(subscription.getCustomer());
         User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
         user.setPaymentActive(false);
+        user.setStripeClientId(null);
         userRepository.save(user);
 
         subscriptionService.deleteSubscription(subscription);
@@ -555,5 +560,13 @@ public class UserService {
         return null != user.getStripeClientId() && !user.getStripeClientId().isBlank()
                 ? result
                 : Optional.empty();
+    }
+
+    public GetWorkspacesDTO getUserWorkspaces(int page, int size) {
+        return workspaceRepository.findWorkspacesByOwnerId(ServiceContext.getContext().getUserId(), page, size);
+    }
+
+    public Optional<User> findUserByEmail(String email) {
+        return userRepository.findUserByEmail(email);
     }
 }

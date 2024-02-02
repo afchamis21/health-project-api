@@ -2,7 +2,6 @@ package andre.chamis.healthproject.service;
 
 
 import andre.chamis.healthproject.context.ServiceContext;
-import andre.chamis.healthproject.domain.exception.ForbiddenException;
 import andre.chamis.healthproject.domain.session.model.Session;
 import andre.chamis.healthproject.domain.session.repository.SessionRepository;
 import andre.chamis.healthproject.domain.user.model.User;
@@ -66,20 +65,6 @@ public class SessionService {
         return sessionRepository.findById(sessionId);
     }
 
-    /**
-     * Retrieves the user ID associated with the current session.
-     *
-     * @return The ID of the user associated with the current session.
-     */
-    public Long getCurrentUserId() {
-        log.info("Attempting to get current user id");
-        Long sessionId = ServiceContext.getContext().getSessionId();
-        Optional<Session> sessionOptional = findSessionById(sessionId);
-        log.debug("Current session exists [{}]", sessionOptional.isPresent());
-        Session session = sessionOptional.orElseThrow(ForbiddenException::new);
-        return session.getUserId();
-    }
-
 
     /**
      * Validates that a session is not expired.
@@ -113,7 +98,7 @@ public class SessionService {
     }
 
     public void deleteAllUserSessions() {
-        Long currentUserId = getCurrentUserId();
+        Long currentUserId = ServiceContext.getContext().getUserId();
         log.info("Deleting all sessions for current user [{}]", currentUserId);
         sessionRepository.deleteSessionsByUserId(currentUserId);
     }
