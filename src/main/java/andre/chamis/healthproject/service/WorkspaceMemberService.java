@@ -2,11 +2,12 @@ package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.domain.exception.BadArgumentException;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
+import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
+import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
-import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMembersDTO;
 import andre.chamis.healthproject.domain.workspace.member.model.WorkspaceMember;
 import andre.chamis.healthproject.domain.workspace.member.repository.WorkspaceMemberRepository;
 import andre.chamis.healthproject.domain.workspace.model.Workspace;
@@ -80,9 +81,9 @@ public class WorkspaceMemberService {
         log.info("User [{}] removed from workspace [{}]!", userId, workspaceId);
     }
 
-    public GetWorkspaceMembersDTO getAllMembersOfWorkspace(Long workspaceId, int page, int size) {
-        log.info("Searching for all members of workspace [{}]. Pagination options: page [{}] size [{}]", workspaceId, page, size);
-        GetWorkspaceMembersDTO members = workspaceMemberRepository.getAllMembersByWorkspaceId(workspaceId, page, size);
+    public PaginatedResponse<GetWorkspaceMemberDTO> getAllMembersOfWorkspace(Long workspaceId, PaginationInfo paginationInfo) {
+        log.info("Searching for all members of workspace [{}]. Pagination options: page [{}] size [{}]", workspaceId, paginationInfo.getPage(), paginationInfo.getSize());
+        PaginatedResponse<GetWorkspaceMemberDTO> members = workspaceMemberRepository.getAllMembersByWorkspaceId(workspaceId, paginationInfo);
 
         log.info("Found members [{}]", members);
 

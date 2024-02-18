@@ -1,6 +1,8 @@
 package andre.chamis.healthproject.domain.workspace.member.repository;
 
-import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMembersDTO;
+import andre.chamis.healthproject.domain.request.PaginationInfo;
+import andre.chamis.healthproject.domain.response.PaginatedResponse;
+import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
 import andre.chamis.healthproject.domain.workspace.member.model.WorkspaceMember;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +31,7 @@ public class WorkspaceMemberRepository {
         jpaRepository.deleteByWorkspaceIdAndUserId(workspaceId, userId);
     }
 
-    public GetWorkspaceMembersDTO getAllMembersByWorkspaceId(Long workspaceId, int page, int size) {
-        return workspaceMemberDAO.getAllMembersByWorkspaceId(workspaceId, page, size);
+    public PaginatedResponse<GetWorkspaceMemberDTO> getAllMembersByWorkspaceId(Long workspaceId, PaginationInfo paginationInfo) {
+        return workspaceMemberDAO.getAllMembersByWorkspaceId(workspaceId, paginationInfo);
     }
 }

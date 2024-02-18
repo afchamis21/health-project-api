@@ -4,11 +4,13 @@ import andre.chamis.healthproject.context.ServiceContext;
 import andre.chamis.healthproject.domain.exception.BadArgumentException;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
 import andre.chamis.healthproject.domain.payment.dto.GetIsUserSubscriberResponse;
+import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
+import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.*;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.domain.user.repository.UserRepository;
-import andre.chamis.healthproject.domain.workspace.dto.GetWorkspacesDTO;
+import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.repository.WorkspaceRepository;
 import andre.chamis.healthproject.util.DateUtils;
 import andre.chamis.healthproject.util.ObjectUtils;
@@ -562,8 +564,8 @@ public class UserService {
                 : Optional.empty();
     }
 
-    public GetWorkspacesDTO getUserWorkspaces(int page, int size) {
-        return workspaceRepository.findWorkspacesByOwnerId(ServiceContext.getContext().getUserId(), page, size);
+    public PaginatedResponse<GetWorkspaceDTO> getUserWorkspaces(PaginationInfo paginationInfo) {
+        return workspaceRepository.findWorkspacesByOwnerId(ServiceContext.getContext().getUserId(), paginationInfo);
     }
 
     public Optional<User> findUserByEmail(String email) {

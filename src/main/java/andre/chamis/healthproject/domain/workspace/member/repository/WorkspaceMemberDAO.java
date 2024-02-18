@@ -1,10 +1,13 @@
 package andre.chamis.healthproject.domain.workspace.member.repository;
 
+import andre.chamis.healthproject.dao.PaginatedDAO;
+import andre.chamis.healthproject.domain.request.PaginationInfo;
+import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
-import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMembersDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -14,32 +17,49 @@ import java.util.*;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-class WorkspaceMemberDAO {
+class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public GetWorkspaceMembersDTO getAllMembersByWorkspaceId(Long workspaceId, int page, int size) {
+    public PaginatedResponse<GetWorkspaceMemberDTO> getAllMembersByWorkspaceId(Long workspaceId, PaginationInfo paginationInfo) {
         Date now = Date.from(Instant.now());
-        String query = """
-                SELECT wu.is_active as is_member_active, wu.create_dt as member_create_dt, u.user_id, u.email, u.username, u.is_registration_complete, u.is_payment_active, u.stripe_client_id FROM users u
+        Map<String, Object> params = new HashMap<>();
+        params.put("workspaceId", workspaceId);
+        params.put("now", now);
+
+        return super.execute(params, paginationInfo);
+    }
+
+    @Override
+    protected NamedParameterJdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+
+    @Override
+    protected String getDataQuery() {
+        return """
+                SELECT wu.is_active as is_member_active, wu.workspace_id as workspace_id, wu.create_dt as member_create_dt, u.user_id, u.email, u.username, u.is_registration_complete, u.is_payment_active, u.stripe_client_id FROM users u
                     JOIN workspace_user wu ON wu.user_id = u.user_id
                     WHERE wu.workspace_id = :workspaceId
                         AND wu.create_dt <= :now
-                    LIMIT :size OFFSET :page
                 """;
+    }
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("workspaceId", workspaceId);
-        params.put("size", size);
-        params.put("page", page * size);
-        params.put("now", now);
+    @Override
+    protected String getCountQuery() {
+        return """
+                SELECT COUNT(user_id) FROM workspace_user WHERE workspace_id = :workspaceId AND create_dt <= :now
+                """;
+    }
 
-        List<GetWorkspaceMemberDTO> users = jdbcTemplate.query(query, params, (rs) -> {
+    @Override
+    protected ResultSetExtractor<List<GetWorkspaceMemberDTO>> getListResultSetExtractor() {
+        return (rs) -> {
             List<GetWorkspaceMemberDTO> results = new ArrayList<>();
             while (rs.next()) {
                 results.add(new GetWorkspaceMemberDTO(
-                        workspaceId,
+                        rs.getLong("workspace_id"),
                         rs.getBoolean("is_member_active"),
-                        rs.getDate("member_create_dt"),
+                        rs.getTimestamp("member_create_dt"),
                         new GetUserDTO(
                                 rs.getLong("user_id"),
                                 rs.getString("username"),
@@ -51,24 +71,6 @@ class WorkspaceMemberDAO {
                 ));
             }
             return results;
-        });
-
-        String countQuery = """
-                SELECT COUNT(user_id) FROM workspace_user WHERE workspace_id = :workspaceId AND create_dt <= :now
-                """;
-
-        Map<String, Object> countQueryParams = new HashMap<>();
-        countQueryParams.put("workspaceId", workspaceId);
-        countQueryParams.put("now", now);
-
-        Integer totalMembers = jdbcTemplate.queryForObject(countQuery, countQueryParams, Integer.class);
-
-        if (totalMembers == null) {
-            return new GetWorkspaceMembersDTO(0, users);
-        }
-
-        double lastPage = Math.ceil(totalMembers / (float) size) - 1;
-
-        return new GetWorkspaceMembersDTO((int) lastPage, users);
+        };
     }
 }

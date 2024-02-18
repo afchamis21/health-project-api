@@ -1,13 +1,14 @@
 package andre.chamis.healthproject.controller;
 
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
+import andre.chamis.healthproject.domain.request.PaginationInfo;
+import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.response.ResponseMessage;
 import andre.chamis.healthproject.domain.response.ResponseMessageBuilder;
 import andre.chamis.healthproject.domain.workspace.dto.CreateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.UpdateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
-import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMembersDTO;
 import andre.chamis.healthproject.service.WorkspaceMemberService;
 import andre.chamis.healthproject.service.WorkspaceService;
 import lombok.RequiredArgsConstructor;
@@ -56,12 +57,11 @@ public class WorkspaceController {
     }
 
     @GetMapping("{workspaceId}/members")
-    public ResponseEntity<ResponseMessage<GetWorkspaceMembersDTO>> getMembers(
-            @PathVariable Long workspaceId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+    public ResponseEntity<ResponseMessage<PaginatedResponse<GetWorkspaceMemberDTO>>> getMembers(
+            @PathVariable Long workspaceId, PaginationInfo paginationInfo
+
     ) {
-        GetWorkspaceMembersDTO body = workspaceMemberService.getAllMembersOfWorkspace(workspaceId, page, size);
+        PaginatedResponse<GetWorkspaceMemberDTO> body = workspaceMemberService.getAllMembersOfWorkspace(workspaceId, paginationInfo);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 

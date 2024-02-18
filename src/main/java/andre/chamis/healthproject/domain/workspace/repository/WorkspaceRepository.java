@@ -1,6 +1,8 @@
 package andre.chamis.healthproject.domain.workspace.repository;
 
-import andre.chamis.healthproject.domain.workspace.dto.GetWorkspacesDTO;
+import andre.chamis.healthproject.domain.request.PaginationInfo;
+import andre.chamis.healthproject.domain.response.PaginatedResponse;
+import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.model.Workspace;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -29,7 +31,7 @@ public class WorkspaceRepository {
         jpaRepository.deleteById(workspaceId);
     }
 
-    public GetWorkspacesDTO findWorkspacesByOwnerId(Long userId, int page, int size) {
-        return workspaceDAO.getWorkspacesByOwnerId(userId, page, size);
+    public PaginatedResponse<GetWorkspaceDTO> findWorkspacesByOwnerId(Long userId, PaginationInfo paginationInfo) {
+        return workspaceDAO.getWorkspacesByOwnerId(userId, paginationInfo);
     }
 }

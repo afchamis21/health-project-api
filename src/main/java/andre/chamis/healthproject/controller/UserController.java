@@ -2,13 +2,15 @@ package andre.chamis.healthproject.controller;
 
 import andre.chamis.healthproject.domain.auth.annotation.ClientAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
+import andre.chamis.healthproject.domain.request.PaginationInfo;
+import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.response.ResponseMessage;
 import andre.chamis.healthproject.domain.response.ResponseMessageBuilder;
 import andre.chamis.healthproject.domain.user.dto.CompleteRegistrationDTO;
 import andre.chamis.healthproject.domain.user.dto.CreateUserDTO;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.user.dto.UpdateUserDTO;
-import andre.chamis.healthproject.domain.workspace.dto.GetWorkspacesDTO;
+import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -116,11 +118,10 @@ public class UserController {
     }
 
     @GetMapping("workspaces")
-    public ResponseEntity<ResponseMessage<GetWorkspacesDTO>> getUserWorkspaces(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+    public ResponseEntity<ResponseMessage<PaginatedResponse<GetWorkspaceDTO>>> getUserWorkspaces(
+            PaginationInfo paginationInfo
     ) {
-        GetWorkspacesDTO body = userService.getUserWorkspaces(page, size);
+        PaginatedResponse<GetWorkspaceDTO> body = userService.getUserWorkspaces(paginationInfo);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 }
