@@ -8,6 +8,7 @@ import andre.chamis.healthproject.domain.response.ResponseMessageBuilder;
 import andre.chamis.healthproject.domain.workspace.dto.CreateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.UpdateWorkspaceDTO;
+import andre.chamis.healthproject.domain.workspace.member.dto.CreateWorkspaceMemberDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
 import andre.chamis.healthproject.service.WorkspaceMemberService;
 import andre.chamis.healthproject.service.WorkspaceService;
@@ -66,8 +67,8 @@ public class WorkspaceController {
     }
 
     @PostMapping("{workspaceId}/members")
-    public ResponseEntity<ResponseMessage<GetWorkspaceMemberDTO>> addMember(@PathVariable Long workspaceId, @RequestParam String email) {
-        GetWorkspaceMemberDTO body = workspaceMemberService.addUserToWorkspace(workspaceId, email);
+    public ResponseEntity<ResponseMessage<GetWorkspaceMemberDTO>> addMember(@PathVariable Long workspaceId, @RequestBody CreateWorkspaceMemberDTO createWorkspaceMemberDTO) {
+        GetWorkspaceMemberDTO body = workspaceMemberService.addUserToWorkspace(workspaceId, createWorkspaceMemberDTO);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 

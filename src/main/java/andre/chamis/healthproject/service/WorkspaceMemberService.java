@@ -7,6 +7,7 @@ import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.user.model.User;
+import andre.chamis.healthproject.domain.workspace.member.dto.CreateWorkspaceMemberDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
 import andre.chamis.healthproject.domain.workspace.member.model.WorkspaceMember;
 import andre.chamis.healthproject.domain.workspace.member.repository.WorkspaceMemberRepository;
@@ -25,10 +26,12 @@ public class WorkspaceMemberService {
     private final WorkspaceService workspaceService;
     private final WorkspaceMemberRepository workspaceMemberRepository;
 
-    public GetWorkspaceMemberDTO addUserToWorkspace(Long workspaceId, String email) {
+    public GetWorkspaceMemberDTO addUserToWorkspace(Long workspaceId, CreateWorkspaceMemberDTO createWorkspaceMemberDTO) {
         Workspace workspace = workspaceService.getWorkspaceByIdOrThrow(workspaceId);
 
         workspaceService.checkWorkspaceOwnership(workspace);
+
+        String email = createWorkspaceMemberDTO.email();
 
         log.info("Getting user with email [{}] or registering a new one!", email);
 
