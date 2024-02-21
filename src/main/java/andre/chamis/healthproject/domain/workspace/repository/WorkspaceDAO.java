@@ -41,7 +41,6 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
         return """
                 SELECT workspace_id, workspace_name, owner_id, is_active, create_dt FROM workspaces WHERE owner_id = :userId
                 AND create_dt <= :now
-                ORDER BY create_dt
                 """;
     }
 

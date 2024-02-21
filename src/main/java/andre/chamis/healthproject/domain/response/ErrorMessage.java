@@ -28,7 +28,10 @@ public enum ErrorMessage {
     WORKSPACE_NOT_FOUND("Workspace não encontrada!"),
     USER_ALREADY_MEMBER("O usuário já está adicionado à workspace!"),
     INACTIVE_WORKSPACE("Essa workspace está desativada!"),
-    CAN_NOT_DELETE_ACTIVE_WORKSPACE("Para deletar uma workspace, você deve primeiro desativar ela!");
+    CAN_NOT_DELETE_ACTIVE_WORKSPACE("Para deletar uma workspace, você deve primeiro desativar ela!"),
+    MISSING_WORKSPACE_NAME("O nome da workspace é obrigatório!"),
+    INVALID_WORKSPACE_NAME("Esse nome da workspace é inválido! Ele deve ter de 4 a 50 caracteres"),
+    UNKNOWN_ERROR("Um erro desconhecido ocorreu, tente novamente em alguns minutos");
 
     private final String message;
 

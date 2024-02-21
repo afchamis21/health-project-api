@@ -2,12 +2,14 @@ package andre.chamis.healthproject.dao;
 
 import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public abstract class PaginatedDAO<T> {
     protected abstract NamedParameterJdbcTemplate getJdbcTemplate();
 
@@ -21,9 +23,9 @@ public abstract class PaginatedDAO<T> {
 
     protected String buildPaginatedQuery(Map<String, Object> params, PaginationInfo paginationInfo) {
         String query = "ORDER BY :sortColumn :sortMode LIMIT :size OFFSET :page"
-                .replace(":sortColumn", getSortColumnName());
+                .replace(":sortColumn", getSortColumnName())
+                .replace(":sortMode", paginationInfo.getSort().getValue());
 
-        params.put(":sortMode", paginationInfo.getSort().getValue());
         params.put("size", paginationInfo.getSize());
         params.put("page", paginationInfo.getPage() * paginationInfo.getSize());
 
@@ -35,6 +37,7 @@ public abstract class PaginatedDAO<T> {
 
         query += buildPaginatedQuery(params, paginationInfo);
 
+        log.debug("Running query [{}] with params [{}]", query, params);
         return getJdbcTemplate().query(query, params, getListResultSetExtractor());
     }
 

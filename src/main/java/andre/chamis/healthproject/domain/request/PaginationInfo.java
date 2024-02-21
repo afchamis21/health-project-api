@@ -7,5 +7,5 @@ import lombok.Data;
 public class PaginationInfo {
     private int page = 0;
     private int size = 10;
-    private SortingMode sort;
+    private SortingMode sort = SortingMode.DESC;
 }

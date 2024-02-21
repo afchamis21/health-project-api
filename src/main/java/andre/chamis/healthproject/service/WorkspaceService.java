@@ -33,6 +33,14 @@ public class WorkspaceService {
 
         log.info("Creating workspace with name [{}] and ownerId [{}]", createWorkspaceDTO.name(), currentUserId);
 
+        if (null == createWorkspaceDTO.name()) {
+            throw new BadArgumentException(ErrorMessage.MISSING_WORKSPACE_NAME);
+        }
+
+        if (createWorkspaceDTO.name().length() < 3 || createWorkspaceDTO.name().length() > 50) {
+            throw new BadArgumentException(ErrorMessage.INVALID_WORKSPACE_NAME);
+        }
+
         Workspace workspace = new Workspace();
         workspace.setWorkspaceName(createWorkspaceDTO.name());
         workspace.setOwnerId(currentUserId);
