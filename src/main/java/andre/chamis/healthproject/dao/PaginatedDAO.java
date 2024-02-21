@@ -11,6 +11,8 @@ import java.util.Map;
 public abstract class PaginatedDAO<T> {
     protected abstract NamedParameterJdbcTemplate getJdbcTemplate();
 
+    protected abstract String getSortColumnName();
+
     protected abstract String getDataQuery();
 
     protected abstract String getCountQuery();
@@ -18,8 +20,10 @@ public abstract class PaginatedDAO<T> {
     protected abstract ResultSetExtractor<List<T>> getListResultSetExtractor();
 
     protected String buildPaginatedQuery(Map<String, Object> params, PaginationInfo paginationInfo) {
-        String query = "LIMIT :size OFFSET :page";
+        String query = "ORDER BY :sortColumn :sortMode LIMIT :size OFFSET :page"
+                .replace(":sortColumn", getSortColumnName());
 
+        params.put(":sortMode", paginationInfo.getSort().getValue());
         params.put("size", paginationInfo.getSize());
         params.put("page", paginationInfo.getPage() * paginationInfo.getSize());
 

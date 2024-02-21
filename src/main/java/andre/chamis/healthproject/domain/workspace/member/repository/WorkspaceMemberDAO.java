@@ -35,6 +35,11 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
     }
 
     @Override
+    protected String getSortColumnName() {
+        return "wu.create_dt";
+    }
+
+    @Override
     protected String getDataQuery() {
         return """
                 SELECT wu.is_active as is_member_active, wu.workspace_id as workspace_id, wu.create_dt as member_create_dt, u.user_id, u.email, u.username, u.is_registration_complete, u.is_payment_active, u.stripe_client_id FROM users u

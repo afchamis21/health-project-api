@@ -32,6 +32,11 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
     }
 
     @Override
+    protected String getSortColumnName() {
+        return "create_dt";
+    }
+
+    @Override
     protected String getDataQuery() {
         return """
                 SELECT workspace_id, workspace_name, owner_id, is_active, create_dt FROM workspaces WHERE owner_id = :userId
