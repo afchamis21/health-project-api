@@ -93,6 +93,7 @@ public class ResponseMessageBuilder {
      */
     private static Metadata buildMetadata() {
         List<String> messages = ServiceContext.getContext().getMetadataMessages();
+        messages.add(ErrorMessage.UNKNOWN_ERROR.getMessage());
         Metadata metadata = new Metadata();
         metadata.setMessages(messages);
 
