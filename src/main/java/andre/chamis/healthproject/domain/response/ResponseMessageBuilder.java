@@ -68,6 +68,7 @@ public class ResponseMessageBuilder {
      */
     public static ResponseEntity<ResponseMessage<Void>> build(Exception exception) {
         Metadata metadata = buildMetadata();
+        metadata.getMessages().add(ErrorMessage.UNKNOWN_ERROR.getMessage());
 
         ResponseMessage<Void> responseMessage = new ResponseMessage<>();
         responseMessage.setMetadata(metadata);
@@ -93,7 +94,6 @@ public class ResponseMessageBuilder {
      */
     private static Metadata buildMetadata() {
         List<String> messages = ServiceContext.getContext().getMetadataMessages();
-        messages.add(ErrorMessage.UNKNOWN_ERROR.getMessage());
         Metadata metadata = new Metadata();
         metadata.setMessages(messages);
 
