@@ -31,7 +31,9 @@ public enum ErrorMessage {
     CAN_NOT_DELETE_ACTIVE_WORKSPACE("Para deletar uma workspace, você deve primeiro desativar ela!"),
     MISSING_WORKSPACE_NAME("O nome da workspace é obrigatório!"),
     INVALID_WORKSPACE_NAME("Esse nome da workspace é inválido! Ele deve ter de 4 a 50 caracteres"),
-    UNKNOWN_ERROR("Um erro desconhecido ocorreu, tente novamente em alguns minutos");
+    UNKNOWN_ERROR("Um erro desconhecido ocorreu, tente novamente em alguns minutos"),
+    INVALID_WORKSPACE_ACCESS("Você não tem permissão para ver essa workspace"),
+    PAID_USER_ONLY("Apenas usuários pagantes podem fazer isso!");
 
     private final String message;
 

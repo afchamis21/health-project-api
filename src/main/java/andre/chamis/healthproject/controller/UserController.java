@@ -124,4 +124,13 @@ public class UserController {
         PaginatedResponse<GetWorkspaceDTO> body = userService.getUserWorkspaces(paginationInfo);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
+
+    @GetMapping("workspaces/search")
+    public ResponseEntity<ResponseMessage<PaginatedResponse<GetWorkspaceDTO>>> searchUserWorkspaces(
+            @RequestParam(required = false, defaultValue = "") String name,
+            PaginationInfo paginationInfo
+    ) {
+        PaginatedResponse<GetWorkspaceDTO> body = userService.searchWorkspacesByNameAndMemberId(name, paginationInfo);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
 }

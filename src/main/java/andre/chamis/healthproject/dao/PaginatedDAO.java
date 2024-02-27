@@ -15,9 +15,6 @@ public abstract class PaginatedDAO<T> {
 
     protected abstract String getSortColumnName();
 
-    protected abstract String getDataQuery();
-
-    protected abstract String getCountQuery();
 
     protected abstract ResultSetExtractor<List<T>> getListResultSetExtractor();
 
@@ -32,17 +29,14 @@ public abstract class PaginatedDAO<T> {
         return query;
     }
 
-    protected List<T> getData(Map<String, Object> params, PaginationInfo paginationInfo) {
-        String query = getDataQuery();
-
+    protected List<T> getData(Map<String, Object> params, PaginationInfo paginationInfo, String query) {
         query += buildPaginatedQuery(params, paginationInfo);
 
         log.debug("Running query [{}] with params [{}]", query, params);
         return getJdbcTemplate().query(query, params, getListResultSetExtractor());
     }
 
-    protected Integer getCount(Map<String, Object> params) {
-        String query = getCountQuery();
+    protected Integer getCount(Map<String, Object> params, String query) {
         return getJdbcTemplate().queryForObject(query, params, Integer.class);
     }
 
@@ -56,9 +50,9 @@ public abstract class PaginatedDAO<T> {
         return new PaginatedResponse<>((int) lastPage, data);
     }
 
-    protected PaginatedResponse<T> execute(Map<String, Object> params, PaginationInfo paginationInfo) {
-        List<T> data = getData(params, paginationInfo);
-        Integer count = getCount(params);
+    protected PaginatedResponse<T> execute(Map<String, Object> params, PaginationInfo paginationInfo, String dataQuery, String countQuery) {
+        List<T> data = getData(params, paginationInfo, dataQuery);
+        Integer count = getCount(params, countQuery);
         return buildResponse(data, count, paginationInfo);
     }
 }

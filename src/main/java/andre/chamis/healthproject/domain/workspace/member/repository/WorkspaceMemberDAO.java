@@ -26,7 +26,7 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
         params.put("workspaceId", workspaceId);
         params.put("now", now);
 
-        return super.execute(params, paginationInfo);
+        return super.execute(params, paginationInfo, getSelectMembersByWorkspaceIdQuery(), getCountMembersByWorkspaceIdQuery());
     }
 
     @Override
@@ -39,8 +39,7 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
         return "wu.create_dt";
     }
 
-    @Override
-    protected String getDataQuery() {
+    protected String getSelectMembersByWorkspaceIdQuery() {
         return """
                 SELECT wu.is_active as is_member_active, wu.workspace_id as workspace_id, wu.create_dt as member_create_dt, u.user_id, u.email, u.username, u.is_registration_complete, u.is_payment_active, u.stripe_client_id FROM users u
                     JOIN workspace_user wu ON wu.user_id = u.user_id
@@ -49,8 +48,7 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
                 """;
     }
 
-    @Override
-    protected String getCountQuery() {
+    protected String getCountMembersByWorkspaceIdQuery() {
         return """
                 SELECT COUNT(user_id) FROM workspace_user WHERE workspace_id = :workspaceId AND create_dt <= :now
                 """;

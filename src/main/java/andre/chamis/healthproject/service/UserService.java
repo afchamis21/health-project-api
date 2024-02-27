@@ -568,6 +568,10 @@ public class UserService {
         return workspaceRepository.findWorkspacesByOwnerId(ServiceContext.getContext().getUserId(), paginationInfo);
     }
 
+    public PaginatedResponse<GetWorkspaceDTO> searchWorkspacesByNameAndMemberId(String name, PaginationInfo paginationInfo) {
+        return workspaceRepository.searchWorkspacesByNameAndMemberId(ServiceContext.getContext().getUserId(), name, paginationInfo);
+    }
+
     public Optional<User> findUserByEmail(String email) {
         return userRepository.findUserByEmail(email);
     }

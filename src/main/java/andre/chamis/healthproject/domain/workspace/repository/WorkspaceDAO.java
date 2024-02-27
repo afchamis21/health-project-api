@@ -23,7 +23,48 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
         params.put("userId", userId);
         params.put("now", now);
 
-        return super.execute(params, paginationInfo);
+        return super.execute(params, paginationInfo, getSelectAllByMemberIdQuery(), getCountAllByMemberIdQuery());
+    }
+
+    public PaginatedResponse<GetWorkspaceDTO> searchWorkspacesByNameAndMemberId(Long userId, String name, PaginationInfo paginationInfo) {
+        Date now = Date.from(Instant.now());
+        Map<String, Object> params = new HashMap<>();
+        params.put("userId", userId);
+        params.put("name", name);
+        params.put("now", now);
+
+        return super.execute(params, paginationInfo, getSearchByWorkspaceNameAndMemberIdQuery(), getCountByWorkspaceNameAndMemberIdQuery());
+    }
+
+    private String getSelectAllByMemberIdQuery() {
+        return """
+                SELECT w.workspace_id, w.owner_id, w.workspace_name,w.create_dt, w.is_active, w.update_dt FROM workspaces w
+                     WHERE w.owner_id = :userId
+                     AND w.create_dt <= :now
+                """;
+    }
+
+    protected String getCountAllByMemberIdQuery() {
+        return """
+                SELECT COUNT(workspace_id) FROM workspaces WHERE owner_id = :userId AND create_dt <= :now
+                """;
+    }
+
+
+    private String getSearchByWorkspaceNameAndMemberIdQuery() {
+        return """
+                SELECT w.workspace_id, w.owner_id, w.workspace_name,w.create_dt, w.is_active, w.update_dt FROM workspaces w
+                    JOIN workspace_user wu ON w.workspace_id = wu.workspace_id
+                         WHERE wu.user_id = :userId
+                         AND w.workspace_name ILIKE :name || '%'
+                         AND w.create_dt <= :now
+                """;
+    }
+
+    protected String getCountByWorkspaceNameAndMemberIdQuery() {
+        return """
+                SELECT COUNT(workspace_id) FROM workspaces WHERE owner_id = :userId AND create_dt <= :now AND workspace_name ILIKE :name || '%'
+                """;
     }
 
     @Override
@@ -34,21 +75,6 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
     @Override
     protected String getSortColumnName() {
         return "create_dt";
-    }
-
-    @Override
-    protected String getDataQuery() {
-        return """
-                SELECT workspace_id, workspace_name, owner_id, is_active, create_dt FROM workspaces WHERE owner_id = :userId
-                AND create_dt <= :now
-                """;
-    }
-
-    @Override
-    protected String getCountQuery() {
-        return """
-                SELECT COUNT(workspace_id) FROM workspaces WHERE owner_id = :userId AND create_dt <= :now
-                """;
     }
 
     @Override

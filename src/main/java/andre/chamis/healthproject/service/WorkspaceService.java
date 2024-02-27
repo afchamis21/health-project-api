@@ -4,6 +4,7 @@ import andre.chamis.healthproject.context.ServiceContext;
 import andre.chamis.healthproject.domain.exception.BadArgumentException;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
+import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.domain.workspace.dto.CreateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.UpdateWorkspaceDTO;
@@ -17,9 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.Objects;
 
-// TODO dividir em dois serviços (workspaces e members), e fazer a parte de ativar e desativar temporariamente os
-//  workspace members
 
 @Slf4j
 @Service
@@ -27,9 +27,15 @@ import java.util.Date;
 public class WorkspaceService {
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
+    private final UserService userService;
 
     public GetWorkspaceDTO createWorkspace(CreateWorkspaceDTO createWorkspaceDTO) {
-        Long currentUserId = ServiceContext.getContext().getUserId();
+        User user = userService.findCurrentUser();
+        Long currentUserId = user.getUserId();
+
+        if (!user.isPaymentActive()) {
+            throw new ForbiddenException(ErrorMessage.PAID_USER_ONLY);
+        }
 
         log.info("Creating workspace with name [{}] and ownerId [{}]", createWorkspaceDTO.name(), currentUserId);
 
@@ -157,6 +163,21 @@ public class WorkspaceService {
         if (updated) {
             log.info("Workspace was updated! Saving to database");
             workspace = workspaceRepository.save(workspace);
+        }
+
+        return GetWorkspaceDTO.fromWorkspace(workspace);
+    }
+
+    public GetWorkspaceDTO getWorkspaceById(Long workspaceId) {
+        Workspace workspace = getWorkspaceByIdOrThrow(workspaceId);
+
+        boolean isUserMemberOfWorkspace = workspaceMemberRepository.existsByWorkspaceIdAndUserId(
+                workspaceId,
+                ServiceContext.getContext().getUserId()
+        );
+
+        if (!isUserMemberOfWorkspace && !Objects.equals(workspace.getOwnerId(), ServiceContext.getContext().getUserId())) {
+            throw new ForbiddenException(ErrorMessage.INVALID_WORKSPACE_ACCESS);
         }
 
         return GetWorkspaceDTO.fromWorkspace(workspace);

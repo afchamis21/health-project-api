@@ -33,6 +33,12 @@ public class WorkspaceController {
         return ResponseMessageBuilder.build(body, HttpStatus.CREATED);
     }
 
+    @GetMapping("{workspaceId}")
+    public ResponseEntity<ResponseMessage<GetWorkspaceDTO>> getWorkspace(@PathVariable Long workspaceId) {
+        GetWorkspaceDTO body = workspaceService.getWorkspaceById(workspaceId);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
+
     @DeleteMapping("{workspaceId}/delete")
     public ResponseEntity<ResponseMessage<Void>> deleteWorkspace(@PathVariable Long workspaceId) {
         workspaceService.deleteWorkspace(workspaceId);

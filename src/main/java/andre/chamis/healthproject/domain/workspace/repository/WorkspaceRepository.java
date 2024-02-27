@@ -34,4 +34,8 @@ public class WorkspaceRepository {
     public PaginatedResponse<GetWorkspaceDTO> findWorkspacesByOwnerId(Long userId, PaginationInfo paginationInfo) {
         return workspaceDAO.getWorkspacesByOwnerId(userId, paginationInfo);
     }
+
+    public PaginatedResponse<GetWorkspaceDTO> searchWorkspacesByNameAndMemberId(Long userId, String name, PaginationInfo paginationInfo) {
+        return workspaceDAO.searchWorkspacesByNameAndMemberId(userId, name, paginationInfo);
+    }
 }
