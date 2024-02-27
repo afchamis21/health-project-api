@@ -5,11 +5,15 @@ import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.response.ResponseMessage;
 import andre.chamis.healthproject.domain.response.ResponseMessageBuilder;
+import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockInDTO;
+import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockOutDTO;
+import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.CreateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.UpdateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.CreateWorkspaceMemberDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
+import andre.chamis.healthproject.service.WorkspaceAttendanceService;
 import andre.chamis.healthproject.service.WorkspaceMemberService;
 import andre.chamis.healthproject.service.WorkspaceService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -26,6 +32,7 @@ import org.springframework.web.bind.annotation.*;
 public class WorkspaceController {
     private final WorkspaceService workspaceService;
     private final WorkspaceMemberService workspaceMemberService;
+    private final WorkspaceAttendanceService workspaceAttendanceService;
 
     @PostMapping("create")
     public ResponseEntity<ResponseMessage<GetWorkspaceDTO>> createWorkspace(@RequestBody CreateWorkspaceDTO createWorkspaceDTO) {
@@ -82,5 +89,17 @@ public class WorkspaceController {
     public ResponseEntity<ResponseMessage<Void>> removeMember(@PathVariable Long workspaceId, @RequestParam Long userId) {
         workspaceMemberService.removeUserFromWorkspace(workspaceId, userId);
         return ResponseMessageBuilder.build(HttpStatus.OK);
+    }
+
+    @PostMapping("/clock-in")
+    public ResponseEntity<ResponseMessage<GetAttendanceDTO>> clockIn(@RequestBody ClockInDTO clockInDTO) {
+        GetAttendanceDTO body = workspaceAttendanceService.clockIn(clockInDTO);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
+
+    @PostMapping("/clock-out")
+    public ResponseEntity<ResponseMessage<List<GetAttendanceDTO>>> clockOut(@RequestBody ClockOutDTO clockOutDTO) {
+        List<GetAttendanceDTO> body = workspaceAttendanceService.clockOut(clockOutDTO);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 }
