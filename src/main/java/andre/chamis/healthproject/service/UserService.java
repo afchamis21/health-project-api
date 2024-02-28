@@ -594,10 +594,11 @@ public class UserService {
         return user.isClockedIn();
     }
 
-    public void clockIn(Long userId) {
+    public void clockIn(Long userId, Long workspaceId) {
         User user = getUserById(userId);
 
         user.setClockedIn(true);
+        user.setClockedInAt(workspaceId);
 
         userRepository.save(user);
     }
@@ -606,6 +607,7 @@ public class UserService {
         User user = getUserById(userId);
 
         user.setClockedIn(false);
+        user.setClockedInAt(null);
 
         userRepository.save(user);
     }

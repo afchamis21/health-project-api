@@ -63,6 +63,9 @@ public class User {
     @Column(name = "is_clocked_in")
     private boolean clockedIn = false;
 
+    @Column(name = "clocked_in_at")
+    private Long clockedInAt;
+
     /**
      * The creation date of the user's record.
      */

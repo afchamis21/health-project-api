@@ -50,7 +50,7 @@ public class WorkspaceAttendanceService {
         WorkspaceAttendance attendance = new WorkspaceAttendance(workspaceId, currentUserId);
         attendance = workspaceAttendanceRepository.save(attendance);
 
-        userService.clockIn(currentUserId);
+        userService.clockIn(currentUserId, workspaceId);
 
         log.info("Clocked in user [{}] on workspace [{}]", currentUserId, workspaceId);
 
