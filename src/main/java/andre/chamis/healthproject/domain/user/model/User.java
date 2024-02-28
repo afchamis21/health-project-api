@@ -60,6 +60,8 @@ public class User {
     @Column(name = "is_payment_active")
     private boolean isPaymentActive;
 
+    @Column(name = "is_clocked_in")
+    private boolean clockedIn = false;
 
     /**
      * The creation date of the user's record.

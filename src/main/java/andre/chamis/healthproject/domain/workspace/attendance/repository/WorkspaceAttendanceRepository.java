@@ -19,7 +19,7 @@ public class WorkspaceAttendanceRepository {
         return jpaRepository.saveAll(attendances);
     }
 
-    public List<WorkspaceAttendance> findAllClockedIn(Long workspaceId, Long currentUserId) {
-        return jpaRepository.findAllByWorkspaceIdAndUserIdAndClockInTimeNotNullAndClockOutTimeNull(workspaceId, currentUserId);
+    public List<WorkspaceAttendance> findAllClockedIn(Long currentUserId) {
+        return jpaRepository.findAllByUserIdAndClockInTimeNotNullAndClockOutTimeNull(currentUserId);
     }
 }

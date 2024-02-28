@@ -96,14 +96,4 @@ public class WorkspaceMemberService {
     protected boolean isMemberOfWorkspace(Long workspaceId, Long memberId) {
         return workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, memberId);
     }
-
-    protected void clockIn(Long workspaceId, Long currentUserId) {
-        log.info("Clocking in user [{}] on workspace [{}]", currentUserId, workspaceId);
-        workspaceMemberRepository.clockIn(workspaceId, currentUserId);
-    }
-
-    protected void clockOut(Long workspaceId, Long currentUserId) {
-        log.info("Clocking out user [{}] on workspace [{}]", currentUserId, workspaceId);
-        workspaceMemberRepository.clockOut(workspaceId, currentUserId);
-    }
 }

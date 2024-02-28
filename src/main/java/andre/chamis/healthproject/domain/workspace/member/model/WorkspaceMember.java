@@ -29,9 +29,6 @@ public class WorkspaceMember {
     @Column(name = "is_active")
     private boolean active;
 
-    @Column(name = "clocked_in")
-    private boolean clockedIn = false;
-
     @Override
     public String toString() {
         return "WorkspaceMember{" +

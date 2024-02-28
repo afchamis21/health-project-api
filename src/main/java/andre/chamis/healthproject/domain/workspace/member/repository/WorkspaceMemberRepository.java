@@ -34,12 +34,4 @@ public class WorkspaceMemberRepository {
     public PaginatedResponse<GetWorkspaceMemberDTO> getAllMembersByWorkspaceId(Long workspaceId, PaginationInfo paginationInfo) {
         return workspaceMemberDAO.getAllMembersByWorkspaceId(workspaceId, paginationInfo);
     }
-
-    public void clockIn(Long workspaceId, Long userId) {
-        jpaRepository.updateWorkspaceMemberByWorkspaceIdAndUserIdSetClockedIn(workspaceId, userId, true);
-    }
-
-    public void clockOut(Long workspaceId, Long userId) {
-        jpaRepository.updateWorkspaceMemberByWorkspaceIdAndUserIdSetClockedIn(workspaceId, userId, false);
-    }
 }

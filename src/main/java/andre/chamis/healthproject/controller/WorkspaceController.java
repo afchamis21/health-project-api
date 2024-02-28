@@ -6,7 +6,6 @@ import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.response.ResponseMessage;
 import andre.chamis.healthproject.domain.response.ResponseMessageBuilder;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockInDTO;
-import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockOutDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.CreateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
@@ -93,13 +92,13 @@ public class WorkspaceController {
 
     @PostMapping("/clock-in")
     public ResponseEntity<ResponseMessage<GetAttendanceDTO>> clockIn(@RequestBody ClockInDTO clockInDTO) {
-        GetAttendanceDTO body = workspaceAttendanceService.clockIn(clockInDTO);
+        GetAttendanceDTO body = workspaceAttendanceService.handleClockIn(clockInDTO);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 
     @PostMapping("/clock-out")
-    public ResponseEntity<ResponseMessage<List<GetAttendanceDTO>>> clockOut(@RequestBody ClockOutDTO clockOutDTO) {
-        List<GetAttendanceDTO> body = workspaceAttendanceService.clockOut(clockOutDTO);
+    public ResponseEntity<ResponseMessage<List<GetAttendanceDTO>>> clockOut() {
+        List<GetAttendanceDTO> body = workspaceAttendanceService.handleClockOut();
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 }

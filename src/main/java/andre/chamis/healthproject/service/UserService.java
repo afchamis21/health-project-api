@@ -268,6 +268,19 @@ public class UserService {
     }
 
     /**
+     * Retrieves a User object by its ID.
+     *
+     * @param userId The ID of the user to retrieve.
+     * @return The User object corresponding to the given ID.
+     * @throws BadArgumentException If no user is found with the provided ID.
+     */
+    private User getUserById(Long userId) {
+        return findUserById(userId).orElseThrow(
+                () -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND)
+        );
+    }
+
+    /**
      * Retrieves user information by ID, or the current user if no ID is provided.
      *
      * @param userIdOptional Optional ID of the user to retrieve information for.
@@ -277,8 +290,7 @@ public class UserService {
     public GetUserDTO getUserById(Optional<Long> userIdOptional) {
         Long userId = userIdOptional.orElse(ServiceContext.getContext().getUserId());
         log.info("Getting user with id [{}]", userId);
-        Optional<User> userOptional = findUserById(userId);
-        User user = userOptional.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
+        User user = getUserById(userId);
         log.debug("Found user [{}]", user);
         return GetUserDTO.fromUser(user);
     }
@@ -399,8 +411,8 @@ public class UserService {
     public GetUserDTO activateUser(Long userId) {
         log.info("Activating user [{}]", userId);
 
-        Optional<User> result = findUserById(userId);
-        User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
+        User user = getUserById(userId);
+
         user.setActive(true);
         return GetUserDTO.fromUser(userRepository.save(user));
     }
@@ -415,8 +427,8 @@ public class UserService {
     public GetUserDTO deactivateUser(Long userId) {
         log.info("Deactivating user [{}]", userId);
 
-        Optional<User> result = findUserById(userId);
-        User user = result.orElseThrow(() -> new BadArgumentException(ErrorMessage.USER_NOT_FOUND));
+        User user = getUserById(userId);
+
         user.setActive(false);
         return GetUserDTO.fromUser(userRepository.save(user));
     }
@@ -574,5 +586,27 @@ public class UserService {
 
     public Optional<User> findUserByEmail(String email) {
         return userRepository.findUserByEmail(email);
+    }
+
+    public boolean checkIsClockedIn(Long userId) {
+        User user = getUserById(userId);
+
+        return user.isClockedIn();
+    }
+
+    public void clockIn(Long userId) {
+        User user = getUserById(userId);
+
+        user.setClockedIn(true);
+
+        userRepository.save(user);
+    }
+
+    public void clockOut(Long userId) {
+        User user = getUserById(userId);
+
+        user.setClockedIn(false);
+
+        userRepository.save(user);
     }
 }

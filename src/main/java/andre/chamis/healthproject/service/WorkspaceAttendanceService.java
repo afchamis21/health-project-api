@@ -4,7 +4,6 @@ import andre.chamis.healthproject.context.ServiceContext;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockInDTO;
-import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockOutDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.model.WorkspaceAttendance;
 import andre.chamis.healthproject.domain.workspace.attendance.repository.WorkspaceAttendanceRepository;
@@ -20,49 +19,61 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class WorkspaceAttendanceService {
+    private final UserService userService;
     private final WorkspaceMemberService workspaceMemberService;
     private final WorkspaceAttendanceRepository workspaceAttendanceRepository;
 
-    public GetAttendanceDTO clockIn(ClockInDTO clockInDTO) {
+    public GetAttendanceDTO handleClockIn(ClockInDTO clockInDTO) {
         Long currentUserId = ServiceContext.getContext().getUserId();
         Long workspaceId = clockInDTO.workspaceId();
 
         log.info("Clocking in user [{}]", workspaceId);
 
-        if (!workspaceMemberService.isMemberOfWorkspace(workspaceId, currentUserId)) {
-            throw new ForbiddenException(ErrorMessage.INVALID_WORKSPACE_ACCESS);
+        checkWorkspaceMembership(workspaceId, currentUserId);
+
+        if (userService.checkIsClockedIn(currentUserId)) {
+            clockOut(currentUserId);
         }
 
+        return clockIn(workspaceId, currentUserId);
+    }
+
+    public List<GetAttendanceDTO> handleClockOut() {
+        Long currentUserId = ServiceContext.getContext().getUserId();
+
+        log.info("Clocking out user [{}]", currentUserId);
+
+        return clockOut(currentUserId);
+    }
+
+    private GetAttendanceDTO clockIn(Long workspaceId, Long currentUserId) {
         WorkspaceAttendance attendance = new WorkspaceAttendance(workspaceId, currentUserId);
         attendance = workspaceAttendanceRepository.save(attendance);
 
-        workspaceMemberService.clockIn(workspaceId, currentUserId);
+        userService.clockIn(currentUserId);
 
         log.info("Clocked in user [{}] on workspace [{}]", currentUserId, workspaceId);
 
         return GetAttendanceDTO.fromAttendace(attendance);
     }
 
-    public List<GetAttendanceDTO> clockOut(ClockOutDTO clockOutDTO) {
-        Long currentUserId = ServiceContext.getContext().getUserId();
-        Long workspaceId = clockOutDTO.workspaceId();
-
-        log.info("Clocking out user [{}]", currentUserId);
-
-        if (!workspaceMemberService.isMemberOfWorkspace(workspaceId, currentUserId)) {
-            throw new ForbiddenException(ErrorMessage.INVALID_WORKSPACE_ACCESS);
-        }
-
-        List<WorkspaceAttendance> attendances = workspaceAttendanceRepository.findAllClockedIn(workspaceId, currentUserId);
+    private List<GetAttendanceDTO> clockOut(Long currentUserId) {
+        List<WorkspaceAttendance> attendances = workspaceAttendanceRepository.findAllClockedIn(currentUserId);
 
         attendances.forEach(attendance -> attendance.setClockOutTime(Date.from(Instant.now())));
 
         attendances = workspaceAttendanceRepository.save(attendances);
 
-        workspaceMemberService.clockOut(workspaceId, currentUserId);
+        userService.clockOut(currentUserId);
 
-        log.info("Clocked out user [{}] from workspace [{}]", currentUserId, workspaceId);
+        log.info("Clocked out user [{}]", currentUserId);
 
         return attendances.stream().map(GetAttendanceDTO::fromAttendace).toList();
+    }
+
+    private void checkWorkspaceMembership(Long workspaceId, Long userId) {
+        if (!workspaceMemberService.isMemberOfWorkspace(workspaceId, userId)) {
+            throw new ForbiddenException(ErrorMessage.INVALID_WORKSPACE_ACCESS);
+        }
     }
 }

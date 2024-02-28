@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 interface WorkspaceAttendanceJpaRepository extends JpaRepository<WorkspaceAttendance, Long> {
-    List<WorkspaceAttendance> findAllByWorkspaceIdAndUserIdAndClockInTimeNotNullAndClockOutTimeNull(Long workspaceId, Long userId);
+    List<WorkspaceAttendance> findAllByUserIdAndClockInTimeNotNullAndClockOutTimeNull(Long userId);
 }
