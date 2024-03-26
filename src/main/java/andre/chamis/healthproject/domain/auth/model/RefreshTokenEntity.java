@@ -21,7 +21,7 @@ public class RefreshTokenEntity {
     private Long refreshTokenId;
 
     /**
-     * Represents a refresh token entity for token-based authentication.
+     * The username associated with the refresh token.
      */
     private String username;
 

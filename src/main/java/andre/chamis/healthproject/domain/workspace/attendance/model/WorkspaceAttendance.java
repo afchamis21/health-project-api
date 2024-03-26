@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.Date;
 
+/**
+ * Represents attendance information for a user in a workspace.
+ */
 @Data
 @Entity
 @NoArgsConstructor
@@ -29,6 +32,13 @@ public class WorkspaceAttendance {
     @Column(name = "clock_out_time")
     private Date clockOutTime;
 
+    /**
+     * Constructs a new WorkspaceAttendance object with the specified workspace ID and user ID,
+     * setting the clock-in time to the current time.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user.
+     */
     public WorkspaceAttendance(Long workspaceId, Long userId) {
         this.workspaceId = workspaceId;
         this.userId = userId;
@@ -46,4 +56,5 @@ public class WorkspaceAttendance {
                 '}';
     }
 }
+
 

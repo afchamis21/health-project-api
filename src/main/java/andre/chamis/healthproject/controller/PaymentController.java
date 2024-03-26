@@ -38,6 +38,12 @@ public class PaymentController {
         return ResponseMessageBuilder.build(response, HttpStatus.OK);
     }
 
+    /**
+     * Checks if a user is a subscriber.
+     *
+     * @param email The email of the user.
+     * @return ResponseEntity containing the response message and HTTP status code.
+     */
     @GetMapping("/is-user-subscriber")
     public ResponseEntity<ResponseMessage<GetIsUserSubscriberResponse>> isUserSubscriber(@RequestParam String email) {
         GetIsUserSubscriberResponse response = userService.getIsUserSubscriber(email);

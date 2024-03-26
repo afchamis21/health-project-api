@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 import java.util.Date;
 
+
+/**
+ * Class representing the member of a workspace
+ */
 @Data
 @Entity
 @NoArgsConstructor
@@ -29,6 +33,19 @@ public class WorkspaceMember {
     @Column(name = "is_active")
     private boolean active;
 
+    /**
+     * Constructs a new WorkspaceMember with the specified workspace ID and user ID.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user.
+     */
+    public WorkspaceMember(Long workspaceId, Long userId) {
+        this.workspaceId = workspaceId;
+        this.userId = userId;
+        this.active = true;
+        this.createDt = Date.from(Instant.now());
+    }
+
     @Override
     public String toString() {
         return "WorkspaceMember{" +
@@ -38,12 +55,5 @@ public class WorkspaceMember {
                 ", createDt=" + createDt +
                 ", active=" + active +
                 '}';
-    }
-
-    public WorkspaceMember(Long workspaceId, Long userId) {
-        this.workspaceId = workspaceId;
-        this.userId = userId;
-        this.active = true;
-        this.createDt = Date.from(Instant.now());
     }
 }

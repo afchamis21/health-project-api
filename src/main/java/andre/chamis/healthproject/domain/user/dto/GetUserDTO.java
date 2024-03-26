@@ -39,6 +39,10 @@ public class GetUserDTO {
 
     private Boolean isCustomer;
 
+    private Boolean isClockedIn;
+
+    private Long clockedInAt;
+
     /**
      * Creates a {@link GetUserDTO} instance from a {@link User} object.
      *
@@ -53,6 +57,8 @@ public class GetUserDTO {
         getUserDTO.setIsRegistrationComplete(user.isRegistrationComplete());
         getUserDTO.setIsPaymentActive(user.isPaymentActive());
         getUserDTO.setIsCustomer(null != user.getStripeClientId());
+        getUserDTO.setIsClockedIn(user.getClockedIn());
+        getUserDTO.setClockedInAt(user.getClockedInAt());
 
         return getUserDTO;
     }

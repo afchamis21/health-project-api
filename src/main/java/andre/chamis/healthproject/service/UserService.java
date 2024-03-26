@@ -493,6 +493,12 @@ public class UserService {
         userRepository.save(user);
     }
 
+    /**
+     * Retrieves information about whether a user is a subscriber based on their email.
+     *
+     * @param email The email of the user.
+     * @return A response indicating if the user is a subscriber.
+     */
     public GetIsUserSubscriberResponse getIsUserSubscriber(String email) {
         log.info("Checking if user [{}] is subscribed", email);
 
@@ -509,6 +515,11 @@ public class UserService {
         return new GetIsUserSubscriberResponse(user.isPaymentActive());
     }
 
+    /**
+     * Handles a payment failure event for a user by updating their payment status and sending an email notification.
+     *
+     * @param email The email of the user.
+     */
     public void handlePaymentFailed(String email) {
         log.info("Payment failed for user [{}] setting isPaymentActive false", email);
 
@@ -532,6 +543,11 @@ public class UserService {
         }
     }
 
+    /**
+     * Handles the deletion of a subscription, updates the user's payment status, and sends an email notification.
+     *
+     * @param subscription The subscription that was deleted.
+     */
     public void handleSubscriptionDeleted(Subscription subscription) {
         log.info("Subscription [{}] from user [{}] ended. Deleting and setting isPaymentActive false it!",
                 subscription.getId(), subscription.getCustomer()
@@ -554,14 +570,30 @@ public class UserService {
         );
     }
 
+    /**
+     * Handles the creation of a subscription.
+     *
+     * @param subscription The subscription that was created.
+     */
     public void handleSubscriptionCreated(Subscription subscription) {
         subscriptionService.createSubscription(subscription);
     }
 
+    /**
+     * Handles the update of a subscription.
+     *
+     * @param subscription The subscription that was updated.
+     */
     public void handleSubscriptionUpdated(Subscription subscription) {
         subscriptionService.updateSubscription(subscription);
     }
 
+    /**
+     * Retrieves a user if they are a customer based on their email.
+     *
+     * @param email The email of the user.
+     * @return An optional containing the user if they are a customer, otherwise empty.
+     */
     public Optional<User> getUserIfIsCustomer(String email) {
         Optional<User> result = userRepository.findUserByEmail(email);
 
@@ -576,24 +608,55 @@ public class UserService {
                 : Optional.empty();
     }
 
+    /**
+     * Retrieves the workspaces owned by the current user.
+     *
+     * @param paginationInfo Information about pagination.
+     * @return A paginated response containing the workspaces.
+     */
     public PaginatedResponse<GetWorkspaceDTO> getUserWorkspaces(PaginationInfo paginationInfo) {
         return workspaceRepository.findWorkspacesByOwnerId(ServiceContext.getContext().getUserId(), paginationInfo);
     }
 
+    /**
+     * Searches all workspaces user belongs to, filtering by name, if name is provided
+     *
+     * @param name           The name of the workspace.
+     * @param paginationInfo Information about pagination.
+     * @return A paginated response containing the matching workspaces.
+     */
     public PaginatedResponse<GetWorkspaceDTO> searchWorkspacesByNameAndMemberId(String name, PaginationInfo paginationInfo) {
         return workspaceRepository.searchWorkspacesByNameAndMemberId(ServiceContext.getContext().getUserId(), name, paginationInfo);
     }
 
+    /**
+     * Finds a user by their email.
+     *
+     * @param email The email of the user to find.
+     * @return An optional containing the found user, or empty if not found.
+     */
     public Optional<User> findUserByEmail(String email) {
         return userRepository.findUserByEmail(email);
     }
 
+    /**
+     * Checks if a user is currently clocked in.
+     *
+     * @param userId The ID of the user.
+     * @return {@code true} if the user is clocked in, otherwise {@code false}.
+     */
     public boolean checkIsClockedIn(Long userId) {
         User user = getUserById(userId);
 
-        return user.isClockedIn();
+        return null != user.getClockedIn() && user.getClockedIn();
     }
 
+    /**
+     * Records a user as clocked in to a workspace.
+     *
+     * @param userId      The ID of the user.
+     * @param workspaceId The ID of the workspace.
+     */
     public void clockIn(Long userId, Long workspaceId) {
         User user = getUserById(userId);
 
@@ -603,6 +666,11 @@ public class UserService {
         userRepository.save(user);
     }
 
+    /**
+     * Records a user as clocked out.
+     *
+     * @param userId The ID of the user.
+     */
     public void clockOut(Long userId) {
         User user = getUserById(userId);
 

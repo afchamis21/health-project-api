@@ -68,6 +68,14 @@ public class StripeService {
         return new GetCheckoutSessionResponse(session.getId());
     }
 
+    /**
+     * Creates a checkout session for an existing customer using the provided request parameters.
+     *
+     * @param createCheckoutSessionRequest The request object containing parameters for creating a checkout session.
+     * @param stripeClientId               The Stripe client ID of the existing customer.
+     * @return The response containing the ID of the created checkout session.
+     * @throws StripeException If an error occurs during the Stripe API call.
+     */
     private GetCheckoutSessionResponse createCheckoutSessionForExistingCustomer(CreateCheckoutSessionRequest createCheckoutSessionRequest, String stripeClientId) throws StripeException {
         SessionCreateParams params = new SessionCreateParams.Builder()
                 .setSuccessUrl(createCheckoutSessionRequest.successUrl())

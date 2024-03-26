@@ -21,5 +21,11 @@ interface SessionJpaRepository extends JpaRepository<Session, Long> {
      */
     List<Session> deleteAllByExpireDtBefore(Date expireDt);
 
+    /**
+     * Deletes all sessions associated with a specific user.
+     *
+     * @param userId The ID of the user whose sessions will be deleted.
+     * @return The list of deleted sessions.
+     */
     List<Session> deleteAllByUserId(Long userId);
 }

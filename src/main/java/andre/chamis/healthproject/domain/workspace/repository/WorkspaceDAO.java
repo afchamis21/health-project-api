@@ -12,20 +12,38 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.*;
 
+/**
+ * Data Access Object (DAO) for workspace-related operations with pagination support.
+ */
 @Repository
 @RequiredArgsConstructor
 class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
+    /**
+     * Retrieves workspaces owned by a user.
+     *
+     * @param userId         The ID of the owner user.
+     * @param paginationInfo The pagination information.
+     * @return A paginated response containing the workspaces owned by the user.
+     */
     public PaginatedResponse<GetWorkspaceDTO> getWorkspacesByOwnerId(Long userId, PaginationInfo paginationInfo) {
         Date now = Date.from(Instant.now());
         Map<String, Object> params = new HashMap<>();
         params.put("userId", userId);
         params.put("now", now);
 
-        return super.execute(params, paginationInfo, getSelectAllByMemberIdQuery(), getCountAllByMemberIdQuery());
+        return super.execute(params, paginationInfo, getSelectAllByOwnerIdQuery(), getCountAllByOwnerIdQuery());
     }
 
+    /**
+     * Searches workspaces by name and member ID.
+     *
+     * @param userId         The ID of the user.
+     * @param name           The name of the workspace.
+     * @param paginationInfo The pagination information.
+     * @return A paginated response containing the workspaces matching the search criteria.
+     */
     public PaginatedResponse<GetWorkspaceDTO> searchWorkspacesByNameAndMemberId(Long userId, String name, PaginationInfo paginationInfo) {
         Date now = Date.from(Instant.now());
         Map<String, Object> params = new HashMap<>();
@@ -36,7 +54,8 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
         return super.execute(params, paginationInfo, getSearchByWorkspaceNameAndMemberIdQuery(), getCountByWorkspaceNameAndMemberIdQuery());
     }
 
-    private String getSelectAllByMemberIdQuery() {
+
+    private String getSelectAllByOwnerIdQuery() {
         return """
                 SELECT w.workspace_id, w.owner_id, w.workspace_name,w.create_dt, w.is_active, w.update_dt FROM workspaces w
                      WHERE w.owner_id = :userId
@@ -44,7 +63,7 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
                 """;
     }
 
-    protected String getCountAllByMemberIdQuery() {
+    protected String getCountAllByOwnerIdQuery() {
         return """
                 SELECT COUNT(workspace_id) FROM workspaces WHERE owner_id = :userId AND create_dt <= :now
                 """;
@@ -63,7 +82,11 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
 
     protected String getCountByWorkspaceNameAndMemberIdQuery() {
         return """
-                SELECT COUNT(workspace_id) FROM workspaces WHERE owner_id = :userId AND create_dt <= :now AND workspace_name ILIKE :name || '%'
+                SELECT COUNT(w.workspace_id) FROM workspaces w
+                    JOIN workspace_user wu ON w.workspace_id = wu.workspace_id
+                         WHERE wu.user_id = :userId
+                         AND w.workspace_name ILIKE :name || '%'
+                         AND w.create_dt <= :now
                 """;
     }
 

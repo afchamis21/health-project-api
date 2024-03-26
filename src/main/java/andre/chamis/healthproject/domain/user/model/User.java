@@ -60,9 +60,15 @@ public class User {
     @Column(name = "is_payment_active")
     private boolean isPaymentActive;
 
+    /**
+     * Indicates whether the user is currently clocked in or not.
+     */
     @Column(name = "is_clocked_in")
-    private boolean clockedIn = false;
+    private Boolean clockedIn;
 
+    /**
+     * The timestamp when the user was last clocked in.
+     */
     @Column(name = "clocked_in_at")
     private Long clockedInAt;
 

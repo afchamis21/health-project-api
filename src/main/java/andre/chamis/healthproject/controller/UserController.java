@@ -117,6 +117,12 @@ public class UserController {
         return ResponseMessageBuilder.build(HttpStatus.OK);
     }
 
+    /**
+     * Retrieves user workspaces.
+     *
+     * @param paginationInfo Information for pagination.
+     * @return A ResponseEntity containing a ResponseMessage with user workspaces information.
+     */
     @GetMapping("workspaces")
     public ResponseEntity<ResponseMessage<PaginatedResponse<GetWorkspaceDTO>>> getUserWorkspaces(
             PaginationInfo paginationInfo
@@ -125,6 +131,13 @@ public class UserController {
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 
+    /**
+     * Searches user workspaces.
+     *
+     * @param name           The name to search for.
+     * @param paginationInfo Information for pagination.
+     * @return A ResponseEntity containing a ResponseMessage with user workspaces information.
+     */
     @GetMapping("workspaces/search")
     public ResponseEntity<ResponseMessage<PaginatedResponse<GetWorkspaceDTO>>> searchUserWorkspaces(
             @RequestParam(required = false, defaultValue = "") String name,

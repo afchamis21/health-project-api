@@ -29,6 +29,14 @@ public class WorkspaceService {
     private final WorkspaceMemberRepository workspaceMemberRepository;
     private final UserService userService;
 
+    /**
+     * Creates a new workspace.
+     *
+     * @param createWorkspaceDTO The DTO containing workspace creation details.
+     * @return The details of the created workspace.
+     * @throws ForbiddenException   If the current user is not a paid user.
+     * @throws BadArgumentException If the workspace name is missing or invalid.
+     */
     public GetWorkspaceDTO createWorkspace(CreateWorkspaceDTO createWorkspaceDTO) {
         User user = userService.findCurrentUser();
         Long currentUserId = user.getUserId();
@@ -65,6 +73,12 @@ public class WorkspaceService {
         return GetWorkspaceDTO.fromWorkspace(workspace);
     }
 
+    /**
+     * Deletes a workspace.
+     *
+     * @param workspaceId The ID of the workspace to delete.
+     * @throws ForbiddenException If the workspace is active.
+     */
     public void deleteWorkspace(Long workspaceId) {
         log.info("Preparing to delete workspace [{}]", workspaceId);
         Workspace workspace = getWorkspaceByIdOrThrow(workspaceId);
@@ -83,6 +97,12 @@ public class WorkspaceService {
         log.info("Deleted all members of workspace [{}]", workspaceId);
     }
 
+    /**
+     * Deactivates a workspace.
+     *
+     * @param workspaceId The ID of the workspace to deactivate.
+     * @return The details of the deactivated workspace.
+     */
     public GetWorkspaceDTO deactivateWorkspace(Long workspaceId) {
         Workspace workspace = getWorkspaceByIdOrThrow(workspaceId);
 
@@ -98,6 +118,12 @@ public class WorkspaceService {
         return GetWorkspaceDTO.fromWorkspace(workspace);
     }
 
+    /**
+     * Activates a workspace.
+     *
+     * @param workspaceId The ID of the workspace to activate.
+     * @return The details of the activated workspace.
+     */
     public GetWorkspaceDTO activateWorkspace(Long workspaceId) {
         Workspace workspace = getWorkspaceByIdOrThrow(workspaceId);
 
@@ -113,6 +139,13 @@ public class WorkspaceService {
         return GetWorkspaceDTO.fromWorkspace(workspace);
     }
 
+    /**
+     * Retrieves a workspace by ID or throws an exception if not found.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @return The retrieved workspace.
+     * @throws BadArgumentException If the workspace is not found.
+     */
     public Workspace getWorkspaceByIdOrThrow(Long workspaceId) {
         log.info("Searching for workspace with id [{}]", workspaceId);
 
@@ -124,6 +157,12 @@ public class WorkspaceService {
         return workspace;
     }
 
+    /**
+     * Checks if the current user is the owner of the workspace.
+     *
+     * @param workspace The workspace to check.
+     * @throws ForbiddenException If the current user is not the owner of the workspace.
+     */
     public void checkWorkspaceOwnership(Workspace workspace) {
         log.info("Checking if logged in user is owner of workspace [{}]", workspace);
         Long currentUserId = ServiceContext.getContext().getUserId();
@@ -141,6 +180,15 @@ public class WorkspaceService {
         }
     }
 
+    /**
+     * Updates a workspace.
+     *
+     * @param workspaceId        The ID of the workspace to update.
+     * @param updateWorkspaceDTO The DTO containing workspace update details.
+     * @return The details of the updated workspace.
+     * @throws ForbiddenException   If the workspace is inactive or if the current user is not the owner of the workspace.
+     * @throws BadArgumentException If the updated workspace name is blank.
+     */
     public GetWorkspaceDTO updateWorkspace(Long workspaceId, UpdateWorkspaceDTO updateWorkspaceDTO) {
         Workspace workspace = getWorkspaceByIdOrThrow(workspaceId);
 
@@ -168,6 +216,13 @@ public class WorkspaceService {
         return GetWorkspaceDTO.fromWorkspace(workspace);
     }
 
+    /**
+     * Retrieves a workspace by ID.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @return The details of the retrieved workspace.
+     * @throws ForbiddenException If the user is not a member or owner of the workspace.
+     */
     public GetWorkspaceDTO getWorkspaceById(Long workspaceId) {
         Workspace workspace = getWorkspaceByIdOrThrow(workspaceId);
 

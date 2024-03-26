@@ -6,28 +6,49 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+/**
+ * Represents a workspace in the system.
+ */
 @Data
 @Entity
 @NoArgsConstructor
 @Table(name = "workspaces")
 public class Workspace {
+    /**
+     * The unique identifier of the workspace.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "workspace_id")
     private Long workspaceId;
 
+    /**
+     * The ID of the owner of the workspace.
+     */
     @Column(name = "owner_id")
     private Long ownerId;
 
+    /**
+     * The name of the workspace.
+     */
     @Column(name = "workspace_name")
     private String workspaceName;
 
+    /**
+     * The creation date of the workspace.
+     */
     @Column(name = "create_dt")
     private Date createDt;
 
+    /**
+     * The update date of the workspace.
+     */
     @Column(name = "update_dt")
     private Date updateDt;
 
+    /**
+     * Indicates whether the workspace is active or not.
+     */
     @Column(name = "is_active")
     private boolean active;
 
@@ -43,3 +64,4 @@ public class Workspace {
                 '}';
     }
 }
+

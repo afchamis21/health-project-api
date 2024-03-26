@@ -49,5 +49,12 @@ interface UserJpaRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.isRegistrationComplete = ?1 AND u.updateDt < ?2 ")
     List<User> findAllByRegistrationCompleteAndUpdateDtBefore(boolean isRegistrationComplete, Date expirationDt);
 
+
+    /**
+     * Finds a user by their Stripe client ID.
+     *
+     * @param stripeClientId The Stripe client ID of the user to find.
+     * @return An {@link Optional} containing the found user, or empty if not found.
+     */
     Optional<User> findByStripeClientId(String stripeClientId);
 }

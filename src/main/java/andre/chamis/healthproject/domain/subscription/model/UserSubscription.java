@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+/**
+ * Represents user subscription entity.
+ */
 @Data
 @Builder
 @NoArgsConstructor

@@ -76,7 +76,13 @@ public class ResponseMessageBuilder {
         return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
+    /**
+     * Builds a response entity with specified HTTP status and custom metadata messages.
+     *
+     * @param httpStatus       The HTTP status to include in the response.
+     * @param metadataMessages Custom metadata messages.
+     * @return A response entity containing the response message.
+     */
     public static ResponseEntity<ResponseMessage<Void>> build(HttpStatus httpStatus, String... metadataMessages) {
         Metadata metadata = new Metadata();
         metadata.setMessages(List.of(metadataMessages));

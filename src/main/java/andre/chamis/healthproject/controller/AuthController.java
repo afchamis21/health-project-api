@@ -3,7 +3,6 @@ package andre.chamis.healthproject.controller;
 
 import andre.chamis.healthproject.domain.auth.annotation.ClientAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
-import andre.chamis.healthproject.domain.auth.annotation.NonAuthenticated;
 import andre.chamis.healthproject.domain.auth.dto.RefreshTokensDTO;
 import andre.chamis.healthproject.domain.auth.dto.TokensDTO;
 import andre.chamis.healthproject.domain.response.ResponseMessage;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
  * Controller class for handling user authentication and authorization.
  */
 @RestController
-@NonAuthenticated
 @RequestMapping("auth")
 @RequiredArgsConstructor
 public class AuthController {

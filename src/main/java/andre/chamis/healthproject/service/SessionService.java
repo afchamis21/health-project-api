@@ -97,6 +97,9 @@ public class SessionService {
         sessionRepository.deleteSessionById(sessionId);
     }
 
+    /**
+     * Deletes all sessions for the current user.
+     */
     public void deleteAllUserSessions() {
         Long currentUserId = ServiceContext.getContext().getUserId();
         log.info("Deleting all sessions for current user [{}]", currentUserId);

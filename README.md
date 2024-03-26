@@ -6,10 +6,10 @@
     * [Java](#java)
         * [Estruturas de dado](#estruturas-de-dado)
     * [Nomenclaturas](#nomenclaturas)
-      * [Obs: `Nunca usar snake_case, pfvrzin`](#obs-nunca-usar-snakecase-pfvrzin)
+        * [Obs: `Nunca usar snake_case, pfvrzin`](#obs-nunca-usar-snakecase-pfvrzin)
     * [Pacotes](#pacotes)
         * [Nome](#nome)
-          * [Exemplo `service.context` ou `servicecontext`](#exemplo-servicecontext-ou-servicecontext)
+            * [Exemplo `service.context` ou `servicecontext`](#exemplo-servicecontext-ou-servicecontext)
         * [Sobre os pacotes](#sobre-os-pacotes)
 
 <!-- TOC -->

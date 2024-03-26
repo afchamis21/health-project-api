@@ -14,12 +14,23 @@ import org.springframework.stereotype.Repository;
 import java.time.Instant;
 import java.util.*;
 
+/**
+ * Data Access Object (DAO) for workspace member-related operations with pagination support.
+ */
 @Slf4j
 @Repository
 @RequiredArgsConstructor
 class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
+
+    /**
+     * Retrieves all members of a workspace.
+     *
+     * @param workspaceId    The ID of the workspace.
+     * @param paginationInfo The pagination information.
+     * @return A paginated response containing the members of the workspace.
+     */
     public PaginatedResponse<GetWorkspaceMemberDTO> getAllMembersByWorkspaceId(Long workspaceId, PaginationInfo paginationInfo) {
         Date now = Date.from(Instant.now());
         Map<String, Object> params = new HashMap<>();
@@ -39,15 +50,28 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
         return "wu.create_dt";
     }
 
+    /**
+     * Retrieves the SQL query for selecting members by workspace ID.
+     *
+     * @return The SQL query for selecting members by workspace ID.
+     */
     protected String getSelectMembersByWorkspaceIdQuery() {
         return """
-                SELECT wu.is_active as is_member_active, wu.workspace_id as workspace_id, wu.create_dt as member_create_dt, u.user_id, u.email, u.username, u.is_registration_complete, u.is_payment_active, u.stripe_client_id FROM users u
+                SELECT wu.is_active as is_member_active, wu.workspace_id as workspace_id,
+                wu.create_dt as member_create_dt, u.user_id, u.email, u.username,
+                u.is_registration_complete, u.is_payment_active, u.stripe_client_id, u.is_clocked_in, u.clocked_in_at
+                FROM users u
                     JOIN workspace_user wu ON wu.user_id = u.user_id
                     WHERE wu.workspace_id = :workspaceId
                         AND wu.create_dt <= :now
                 """;
     }
 
+    /**
+     * Retrieves the SQL query for counting members by workspace ID.
+     *
+     * @return The SQL query for counting members by workspace ID.
+     */
     protected String getCountMembersByWorkspaceIdQuery() {
         return """
                 SELECT COUNT(user_id) FROM workspace_user WHERE workspace_id = :workspaceId AND create_dt <= :now
@@ -69,7 +93,9 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
                                 rs.getString("email"),
                                 rs.getBoolean("is_registration_complete"),
                                 rs.getBoolean("is_payment_active"),
-                                null != rs.getString("stripe_client_id")
+                                null != rs.getString("stripe_client_id"),
+                                rs.getBoolean("is_clocked_in"),
+                                rs.getLong("clocked_in_at")
                         )
                 ));
             }

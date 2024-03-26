@@ -33,18 +33,36 @@ public class ErrorHandler {
         return ResponseMessageBuilder.build(ex);
     }
 
+    /**
+     * Handles missing servlet request parameter exceptions.
+     *
+     * @param ex The exception to be handled.
+     * @return ResponseEntity containing the response message and HTTP status code 400 (Bad Request).
+     */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<ResponseMessage<Void>> handleMissingRequestParamException(MissingServletRequestParameterException ex) {
         ServiceContext.addException(ex);
         return ResponseMessageBuilder.build(HttpStatus.BAD_REQUEST, "O parâmetro {param} é obrigatório".replace("{param}", ex.getParameterName()));
     }
 
+    /**
+     * Handles exceptions when a requested resource is not found.
+     *
+     * @param ex The exception to be handled.
+     * @return ResponseEntity containing the response message and HTTP status code 404 (Not Found).
+     */
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ResponseMessage<Void>> handleNoResourceFoundException(NoResourceFoundException ex) {
         ServiceContext.addException(ex);
         return ResponseMessageBuilder.build(HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * Handles HTTP message not readable exceptions.
+     *
+     * @param ex The exception to be handled.
+     * @return ResponseEntity containing the response message and HTTP status code 400 (Bad Request).
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ResponseMessage<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
         ServiceContext.addException(ex);

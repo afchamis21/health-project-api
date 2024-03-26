@@ -26,6 +26,15 @@ public class WorkspaceMemberService {
     private final WorkspaceService workspaceService;
     private final WorkspaceMemberRepository workspaceMemberRepository;
 
+    /**
+     * Adds a user to a workspace.
+     *
+     * @param workspaceId              The ID of the workspace.
+     * @param createWorkspaceMemberDTO The DTO containing the email of the user to add.
+     * @return The details of the added workspace member.
+     * @throws ForbiddenException   If the workspace is not active.
+     * @throws BadArgumentException If the user is already a member of the workspace.
+     */
     public GetWorkspaceMemberDTO addUserToWorkspace(Long workspaceId, CreateWorkspaceMemberDTO createWorkspaceMemberDTO) {
         Workspace workspace = workspaceService.getWorkspaceByIdOrThrow(workspaceId);
 
@@ -68,6 +77,13 @@ public class WorkspaceMemberService {
         );
     }
 
+    /**
+     * Removes a user from a workspace.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user to remove.
+     * @throws ForbiddenException If the workspace is not active.
+     */
     public void removeUserFromWorkspace(Long workspaceId, Long userId) {
         Workspace workspace = workspaceService.getWorkspaceByIdOrThrow(workspaceId);
 
@@ -84,6 +100,13 @@ public class WorkspaceMemberService {
         log.info("User [{}] removed from workspace [{}]!", userId, workspaceId);
     }
 
+    /**
+     * Retrieves all members of a workspace.
+     *
+     * @param workspaceId    The ID of the workspace.
+     * @param paginationInfo The pagination information.
+     * @return Paginated list of workspace members.
+     */
     public PaginatedResponse<GetWorkspaceMemberDTO> getAllMembersOfWorkspace(Long workspaceId, PaginationInfo paginationInfo) {
         log.info("Searching for all members of workspace [{}]. Pagination options: page [{}] size [{}]", workspaceId, paginationInfo.getPage(), paginationInfo.getSize());
         PaginatedResponse<GetWorkspaceMemberDTO> members = workspaceMemberRepository.getAllMembersByWorkspaceId(workspaceId, paginationInfo);
@@ -93,6 +116,13 @@ public class WorkspaceMemberService {
         return members;
     }
 
+    /**
+     * Checks if a user is a member of a workspace.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param memberId    The ID of the user.
+     * @return True if the user is a member of the workspace, otherwise false.
+     */
     protected boolean isMemberOfWorkspace(Long workspaceId, Long memberId) {
         return workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, memberId);
     }

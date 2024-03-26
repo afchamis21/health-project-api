@@ -13,16 +13,31 @@ import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+/**
+ * Manages user subscriptions and interacts with the repository for subscription-related operations.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserSubscriptionService {
     private final UserSubscriptionRepository subscriptionRepository;
 
+    /**
+     * Creates a subscription record in the database.
+     *
+     * @param subscription The subscription to create.
+     */
     public void createSubscription(Subscription subscription) {
         createSubscription(subscription, false);
     }
 
+    /**
+     * Creates a subscription and adds it to the database.
+     * If skipDbCheck is false, it checks if the subscription already exists in the database before creation.
+     *
+     * @param subscription The subscription to create.
+     * @param skipDbCheck  A flag indicating whether to skip the database check.
+     */
     private void createSubscription(Subscription subscription, boolean skipDbCheck) {
         log.info("Adding subscription [{}}] to database with user [{}]", subscription.getId(), subscription.getCustomer());
 
@@ -54,6 +69,11 @@ public class UserSubscriptionService {
         log.info("Successfully added subscription to database [{}]", subscription.getId());
     }
 
+    /**
+     * Updates an existing subscription in the database.
+     *
+     * @param subscription The subscription to update.
+     */
     public void updateSubscription(Subscription subscription) {
         log.info("Updating subscription [{}}]", subscription.getId());
 
@@ -76,6 +96,11 @@ public class UserSubscriptionService {
         log.info("Subscription [{}}] updated!", subscription.getId());
     }
 
+    /**
+     * Deletes a subscription from the database.
+     *
+     * @param subscription The subscription to delete.
+     */
     public void deleteSubscription(Subscription subscription) {
         log.info("Deleting subscription [{}}]", subscription.getId());
 

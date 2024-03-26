@@ -23,6 +23,12 @@ public class WorkspaceAttendanceService {
     private final WorkspaceMemberService workspaceMemberService;
     private final WorkspaceAttendanceRepository workspaceAttendanceRepository;
 
+    /**
+     * Handles the clock-in process for a user.
+     *
+     * @param clockInDTO The DTO containing the workspace ID for clocking in.
+     * @return The attendance details after clocking in.
+     */
     public GetAttendanceDTO handleClockIn(ClockInDTO clockInDTO) {
         Long currentUserId = ServiceContext.getContext().getUserId();
         Long workspaceId = clockInDTO.workspaceId();
@@ -38,6 +44,11 @@ public class WorkspaceAttendanceService {
         return clockIn(workspaceId, currentUserId);
     }
 
+    /**
+     * Handles the clock-out process for a user.
+     *
+     * @return The attendance details after clocking out.
+     */
     public List<GetAttendanceDTO> handleClockOut() {
         Long currentUserId = ServiceContext.getContext().getUserId();
 
@@ -54,7 +65,7 @@ public class WorkspaceAttendanceService {
 
         log.info("Clocked in user [{}] on workspace [{}]", currentUserId, workspaceId);
 
-        return GetAttendanceDTO.fromAttendace(attendance);
+        return GetAttendanceDTO.fromAttendance(attendance);
     }
 
     private List<GetAttendanceDTO> clockOut(Long currentUserId) {
@@ -68,7 +79,7 @@ public class WorkspaceAttendanceService {
 
         log.info("Clocked out user [{}]", currentUserId);
 
-        return attendances.stream().map(GetAttendanceDTO::fromAttendace).toList();
+        return attendances.stream().map(GetAttendanceDTO::fromAttendance).toList();
     }
 
     private void checkWorkspaceMembership(Long workspaceId, Long userId) {

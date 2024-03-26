@@ -9,6 +9,7 @@ import java.util.List;
  */
 @Data
 public class Metadata {
+
     /**
      * A set of messages included in the metadata.
      */

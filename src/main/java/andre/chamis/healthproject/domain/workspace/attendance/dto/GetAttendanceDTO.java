@@ -6,15 +6,39 @@ import lombok.Data;
 
 import java.util.Date;
 
+/**
+ * Data transfer object (DTO) representing attendance information.
+ */
 @Data
 @AllArgsConstructor
 public final class GetAttendanceDTO {
+    /**
+     * The ID of the workspace.
+     */
     private final Long workspaceId;
+
+    /**
+     * The ID of the user.
+     */
     private final Long userId;
+
+    /**
+     * The timestamp indicating the time of clock-in.
+     */
     private final Date clockInTime;
+
+    /**
+     * The timestamp indicating the time of clock-out.
+     */
     private final Date clockOutTime;
 
-    public static GetAttendanceDTO fromAttendace(WorkspaceAttendance attendance) {
+    /**
+     * Creates a GetAttendanceDTO object from a WorkspaceAttendance entity.
+     *
+     * @param attendance The WorkspaceAttendance entity to convert.
+     * @return The corresponding GetAttendanceDTO object.
+     */
+    public static GetAttendanceDTO fromAttendance(WorkspaceAttendance attendance) {
         return new GetAttendanceDTO(
                 attendance.getWorkspaceId(),
                 attendance.getUserId(),
@@ -23,3 +47,4 @@ public final class GetAttendanceDTO {
         );
     }
 }
+

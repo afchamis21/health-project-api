@@ -76,6 +76,11 @@ public class UserRepository {
         return userJpaRepository.existsByEmail(email);
     }
 
+    /**
+     * Deletes a user by their ID from both the database and the in-memory cache.
+     *
+     * @param userId The ID of the user to delete.
+     */
     public void delete(Long userId) {
         userInMemoryCache.remove(userId);
         userJpaRepository.deleteById(userId);
@@ -95,6 +100,12 @@ public class UserRepository {
         return userJpaRepository.findAllByRegistrationCompleteAndUpdateDtBefore(false, expirationDt);
     }
 
+    /**
+     * Finds a user by their Stripe client ID.
+     *
+     * @param stripeClientId The Stripe client ID of the user to find.
+     * @return An {@link Optional} containing the found user, or empty if not found.
+     */
     public Optional<User> findUserByStripeClientId(String stripeClientId) {
         return userJpaRepository.findByStripeClientId(stripeClientId);
     }

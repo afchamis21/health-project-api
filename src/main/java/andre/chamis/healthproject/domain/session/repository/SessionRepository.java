@@ -86,6 +86,11 @@ public class SessionRepository {
         inMemoryCache.remove(sessionId);
     }
 
+    /**
+     * Deletes all sessions associated with a given user ID from both the database and the in-memory cache.
+     *
+     * @param userId The ID of the user whose sessions will be deleted.
+     */
     @Transactional
     public void deleteSessionsByUserId(Long userId) {
         List<Session> sessions = jpaRepository.deleteAllByUserId(userId);
