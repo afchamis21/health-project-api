@@ -33,7 +33,9 @@ public enum ErrorMessage {
     INVALID_WORKSPACE_NAME("Esse nome da workspace é inválido! Ele deve ter de 4 a 50 caracteres"),
     UNKNOWN_ERROR("Um erro desconhecido ocorreu, tente novamente em alguns minutos"),
     INVALID_WORKSPACE_ACCESS("Você não tem permissão para ver essa workspace"),
-    PAID_USER_ONLY("Apenas usuários pagantes podem fazer isso!");
+    PAID_USER_ONLY("Apenas usuários pagantes podem fazer isso!"),
+    MEMBER_IS_DEACTIVATED("Este usuário foi temporariamente desativado dessa workspace. Contacte o administrador da workspace!"),
+    MEMBER_IS_NOT_DEACTIVATED("Você deve desativar o usuário antes de fazer isso!");
 
     private final String message;
 

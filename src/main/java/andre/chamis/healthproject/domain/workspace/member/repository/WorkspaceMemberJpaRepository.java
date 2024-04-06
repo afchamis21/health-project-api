@@ -2,7 +2,10 @@ package andre.chamis.healthproject.domain.workspace.member.repository;
 
 import andre.chamis.healthproject.domain.workspace.member.model.WorkspaceMember;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 @Repository
 interface WorkspaceMemberJpaRepository extends JpaRepository<WorkspaceMember, Long> {
@@ -30,4 +33,11 @@ interface WorkspaceMemberJpaRepository extends JpaRepository<WorkspaceMember, Lo
      * @param userId      The ID of the user.
      */
     void deleteByWorkspaceIdAndUserId(Long workspaceId, Long userId);
+
+    Optional<WorkspaceMember> findByWorkspaceIdAndUserId(Long workspaceId, Long userId);
+
+    @Query("update WorkspaceMember wm SET wm.active = :active WHERE wm.workspaceId = :workspaceId AND wm.userId = :userId ")
+    void updateWorkspaceMemberByWorkspaceIdAndUserIdSetActive(Long workspaceId, Long userId, boolean active);
+
+    boolean existsByActiveAndWorkspaceIdAndUserId(Boolean active, Long workspaceId, Long userId);
 }

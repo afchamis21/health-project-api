@@ -8,6 +8,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 @RequiredArgsConstructor
 public class WorkspaceMemberRepository {
@@ -64,5 +66,31 @@ public class WorkspaceMemberRepository {
      */
     public PaginatedResponse<GetWorkspaceMemberDTO> getAllMembersByWorkspaceId(Long workspaceId, PaginationInfo paginationInfo) {
         return workspaceMemberDAO.getAllMembersByWorkspaceId(workspaceId, paginationInfo);
+    }
+
+    /**
+     * Finds a workspace member by its userId and the workspace id.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user.
+     * @return An optional with the Workspace Member or empty if it's not found.
+     */
+    public Optional<WorkspaceMember> findByWorkspaceIdAndUserId(Long workspaceId, Long userId) {
+        return jpaRepository.findByWorkspaceIdAndUserId(workspaceId, userId);
+    }
+
+    /**
+     * Updates the isActive flag of a workspace member.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user.
+     * @param active      The new value of the isActive flag.
+     */
+    public void updateWorkspaceMemberSetActive(Long workspaceId, Long userId, boolean active) {
+        jpaRepository.updateWorkspaceMemberByWorkspaceIdAndUserIdSetActive(workspaceId, userId, active);
+    }
+
+    public boolean checkIfWorkspaceMemberIsDeactivated(Long workspaceId, Long userId) {
+        return jpaRepository.existsByActiveAndWorkspaceIdAndUserId(false, workspaceId, userId);
     }
 }

@@ -170,4 +170,16 @@ public class WorkspaceController {
         workspaceMemberService.removeUserFromWorkspace(workspaceId, userId);
         return ResponseMessageBuilder.build(HttpStatus.OK);
     }
+
+    @PatchMapping("{workspaceId}/members/activate")
+    public ResponseEntity<ResponseMessage<Void>> activateMember(@PathVariable Long workspaceId, @RequestParam Long userId) {
+        workspaceMemberService.activateWorkspaceMember(workspaceId, userId);
+        return ResponseMessageBuilder.build(HttpStatus.OK);
+    }
+
+    @PatchMapping("{workspaceId}/members/deactivate")
+    public ResponseEntity<ResponseMessage<Void>> deactivateMember(@PathVariable Long workspaceId, @RequestParam Long userId) {
+        workspaceMemberService.deactivateWorkspaceMember(workspaceId, userId);
+        return ResponseMessageBuilder.build(HttpStatus.OK);
+    }
 }

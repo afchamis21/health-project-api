@@ -36,9 +36,7 @@ public class WorkspaceMemberService {
      * @throws BadArgumentException If the user is already a member of the workspace.
      */
     public GetWorkspaceMemberDTO addUserToWorkspace(Long workspaceId, CreateWorkspaceMemberDTO createWorkspaceMemberDTO) {
-        Workspace workspace = workspaceService.getWorkspaceIfActiveOrThrow(workspaceId);
-
-        workspaceService.checkWorkspaceOwnership(workspace);
+        Workspace workspace = workspaceService.getWorkspaceAndCheckOwnership(workspaceId, true);
 
         String email = createWorkspaceMemberDTO.email();
 
@@ -80,11 +78,15 @@ public class WorkspaceMemberService {
      * @throws ForbiddenException If the workspace is not active.
      */
     public void removeUserFromWorkspace(Long workspaceId, Long userId) {
-        Workspace workspace = workspaceService.getWorkspaceIfActiveOrThrow(workspaceId);
+        Workspace workspace = workspaceService.getWorkspaceAndCheckOwnership(workspaceId, true);
 
         log.info("Removing user [{}] from workspace [{}]", userId, workspaceId);
 
-        workspaceService.checkWorkspaceOwnership(workspace);
+        boolean isMemberDeactivated = workspaceMemberRepository.checkIfWorkspaceMemberIsDeactivated(workspaceId, userId);
+
+        if (!isMemberDeactivated) {
+            throw new ForbiddenException(ErrorMessage.MEMBER_IS_NOT_DEACTIVATED);
+        }
 
         workspaceMemberRepository.deleteByWorkspaceIdAndUserId(workspaceId, userId);
         log.info("User [{}] removed from workspace [{}]!", userId, workspaceId);
@@ -115,5 +117,65 @@ public class WorkspaceMemberService {
      */
     protected boolean isMemberOfWorkspace(Long workspaceId, Long memberId) {
         return workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, memberId);
+    }
+
+    /**
+     * Retrieves a workspace member by ID of the workspace and ID of the user
+     * or throws an exception if not found or if workspace is not active.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user.
+     * @return The retrieved workspace member.
+     * @throws BadArgumentException If the workspace member is not found.
+     * @throws ForbiddenException   If the workspace member is not active.
+     */
+    public WorkspaceMember findWorkspaceMemberIfActiveOrThrow(Long workspaceId, Long userId) {
+        WorkspaceMember member = findWorkspaceMemberOrThrow(workspaceId, userId);
+
+        if (!member.isActive()) {
+            throw new ForbiddenException(ErrorMessage.MEMBER_IS_DEACTIVATED);
+        }
+
+        return member;
+    }
+
+    /**
+     * Retrieves a workspace member by ID of the workspace and ID of the user
+     * or throws an exception if not found or if workspace is not active.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user.
+     * @return The retrieved workspace member.
+     * @throws BadArgumentException If the workspace member is not found.
+     */
+    public WorkspaceMember findWorkspaceMemberOrThrow(Long workspaceId, Long userId) {
+        Optional<WorkspaceMember> result = workspaceMemberRepository.findByWorkspaceIdAndUserId(workspaceId, userId);
+        return result.orElseThrow(() -> new BadArgumentException(ErrorMessage.INVALID_WORKSPACE_ACCESS));
+    }
+
+    /**
+     * Sets the isActive flag of a workspace member to {@code true}
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user.
+     */
+    public void activateWorkspaceMember(Long workspaceId, Long userId) {
+        // TODO might want to implement ADMIN users later on
+        Workspace workspace = workspaceService.getWorkspaceAndCheckOwnership(workspaceId, true);
+
+        workspaceMemberRepository.updateWorkspaceMemberSetActive(workspaceId, userId, true);
+    }
+
+    /**
+     * Sets the isActive flag of a workspace member to {@code false}
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user.
+     */
+    public void deactivateWorkspaceMember(Long workspaceId, Long userId) {
+        // TODO might want to implement ADMIN users later on
+        Workspace workspace = workspaceService.getWorkspaceAndCheckOwnership(workspaceId, true);
+
+        workspaceMemberRepository.updateWorkspaceMemberSetActive(workspaceId, userId, false);
     }
 }

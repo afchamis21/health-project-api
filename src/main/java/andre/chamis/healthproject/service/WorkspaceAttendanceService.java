@@ -1,12 +1,11 @@
 package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.context.ServiceContext;
-import andre.chamis.healthproject.domain.exception.ForbiddenException;
-import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockInDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.model.WorkspaceAttendance;
 import andre.chamis.healthproject.domain.workspace.attendance.repository.WorkspaceAttendanceRepository;
+import andre.chamis.healthproject.domain.workspace.member.model.WorkspaceMember;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,9 +34,9 @@ public class WorkspaceAttendanceService {
 
         log.info("Clocking in user [{}]", workspaceId);
 
-        checkWorkspaceMembership(workspaceId, currentUserId);
+        WorkspaceMember workspaceMember = workspaceMemberService.findWorkspaceMemberIfActiveOrThrow(workspaceId, currentUserId);
 
-        if (userService.checkIsClockedIn(currentUserId)) {
+        if (userService.checkIsClockedIn(workspaceMember.getUserId())) {
             clockOut(currentUserId);
         }
 
@@ -80,11 +79,5 @@ public class WorkspaceAttendanceService {
         log.info("Clocked out user [{}]", currentUserId);
 
         return attendances.stream().map(GetAttendanceDTO::fromAttendance).toList();
-    }
-
-    private void checkWorkspaceMembership(Long workspaceId, Long userId) {
-        if (!workspaceMemberService.isMemberOfWorkspace(workspaceId, userId)) {
-            throw new ForbiddenException(ErrorMessage.INVALID_WORKSPACE_ACCESS);
-        }
     }
 }
