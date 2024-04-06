@@ -158,6 +158,25 @@ public class WorkspaceService {
     }
 
     /**
+     * Retrieves a workspace by ID or throws an exception if not found or if workspace is not active.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @return The retrieved workspace.
+     * @throws BadArgumentException If the workspace is not found.
+     * @throws ForbiddenException   If the workspace is not active.
+     */
+    public Workspace getWorkspaceIfActiveOrThrow(Long workspaceId) {
+        Workspace workspace = getWorkspaceByIdOrThrow(workspaceId);
+
+        if (!workspace.isActive()) {
+            log.error("Workspace [{}] is not active!", workspaceId);
+            throw new ForbiddenException(ErrorMessage.INACTIVE_WORKSPACE);
+        }
+
+        return workspace;
+    }
+
+    /**
      * Checks if the current user is the owner of the workspace.
      *
      * @param workspace The workspace to check.
@@ -190,16 +209,11 @@ public class WorkspaceService {
      * @throws BadArgumentException If the updated workspace name is blank.
      */
     public GetWorkspaceDTO updateWorkspace(Long workspaceId, UpdateWorkspaceDTO updateWorkspaceDTO) {
-        Workspace workspace = getWorkspaceByIdOrThrow(workspaceId);
+        Workspace workspace = getWorkspaceIfActiveOrThrow(workspaceId);
 
         checkWorkspaceOwnership(workspace);
 
         log.info("Updating workspace [{}] with params [{}]", workspaceId, updateWorkspaceDTO);
-
-        if (!workspace.isActive()) {
-            log.warn("Workspace [{}] is deactivated!", workspace);
-            throw new ForbiddenException(ErrorMessage.INACTIVE_WORKSPACE);
-        }
 
         boolean updated = false;
 

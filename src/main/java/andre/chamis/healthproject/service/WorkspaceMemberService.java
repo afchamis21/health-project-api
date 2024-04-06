@@ -36,7 +36,7 @@ public class WorkspaceMemberService {
      * @throws BadArgumentException If the user is already a member of the workspace.
      */
     public GetWorkspaceMemberDTO addUserToWorkspace(Long workspaceId, CreateWorkspaceMemberDTO createWorkspaceMemberDTO) {
-        Workspace workspace = workspaceService.getWorkspaceByIdOrThrow(workspaceId);
+        Workspace workspace = workspaceService.getWorkspaceIfActiveOrThrow(workspaceId);
 
         workspaceService.checkWorkspaceOwnership(workspace);
 
@@ -57,11 +57,6 @@ public class WorkspaceMemberService {
         }
 
         log.debug("Check passed!");
-
-        if (!workspace.isActive()) {
-            log.warn("Workspace is not active!");
-            throw new ForbiddenException(ErrorMessage.INACTIVE_WORKSPACE);
-        }
 
         WorkspaceMember workspaceMember = new WorkspaceMember(workspaceId, user.getUserId());
         log.debug("Created workspace member [{}]", workspaceMember);
@@ -85,16 +80,11 @@ public class WorkspaceMemberService {
      * @throws ForbiddenException If the workspace is not active.
      */
     public void removeUserFromWorkspace(Long workspaceId, Long userId) {
-        Workspace workspace = workspaceService.getWorkspaceByIdOrThrow(workspaceId);
+        Workspace workspace = workspaceService.getWorkspaceIfActiveOrThrow(workspaceId);
 
         log.info("Removing user [{}] from workspace [{}]", userId, workspaceId);
 
         workspaceService.checkWorkspaceOwnership(workspace);
-
-        if (!workspace.isActive()) {
-            log.warn("Workspace is deactivated");
-            throw new ForbiddenException(ErrorMessage.INACTIVE_WORKSPACE);
-        }
 
         workspaceMemberRepository.deleteByWorkspaceIdAndUserId(workspaceId, userId);
         log.info("User [{}] removed from workspace [{}]!", userId, workspaceId);
