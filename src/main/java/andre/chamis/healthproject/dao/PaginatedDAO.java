@@ -46,7 +46,27 @@ public abstract class PaginatedDAO<T> {
      * @return The paginated SQL query.
      */
     protected String buildPaginatedQuery(Map<String, Object> params, PaginationInfo paginationInfo) {
+
         String query = "ORDER BY :sortColumn :sortMode LIMIT :size OFFSET :page"
+                .replace(":sortColumn", getSortColumnName())
+                .replace(":sortMode", paginationInfo.getSort().getValue());
+
+        params.put("size", paginationInfo.getSize());
+        params.put("page", paginationInfo.getPage() * paginationInfo.getSize());
+
+        return query;
+    }
+
+    /**
+     * Builds a paginated SQL query based on provided parameters and pagination information.
+     *
+     * @param params         The parameters for the query.
+     * @param paginationInfo The pagination information.
+     * @return The paginated SQL query.
+     */
+    protected String appendPaginatedQuery(Map<String, Object> params, PaginationInfo paginationInfo) {
+
+        String query = ", :sortColumn :sortMode LIMIT :size OFFSET :page"
                 .replace(":sortColumn", getSortColumnName())
                 .replace(":sortMode", paginationInfo.getSort().getValue());
 
@@ -65,7 +85,11 @@ public abstract class PaginatedDAO<T> {
      * @return The list of paginated data.
      */
     protected List<T> getData(Map<String, Object> params, PaginationInfo paginationInfo, String query) {
-        query += buildPaginatedQuery(params, paginationInfo);
+        if (query.contains("ORDER BY")) {
+            query += appendPaginatedQuery(params, paginationInfo);
+        } else {
+            query += buildPaginatedQuery(params, paginationInfo);
+        }
 
         log.debug("Running query [{}] with params [{}]", query, params);
         return getJdbcTemplate().query(query, params, getListResultSetExtractor());

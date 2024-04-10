@@ -64,6 +64,7 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
                     JOIN workspace_user wu ON wu.user_id = u.user_id
                     WHERE wu.workspace_id = :workspaceId
                         AND wu.create_dt <= :now
+                    ORDER BY wu.is_active DESC
                 """;
     }
 
