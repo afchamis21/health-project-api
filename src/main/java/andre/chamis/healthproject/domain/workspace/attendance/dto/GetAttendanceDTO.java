@@ -1,36 +1,18 @@
 package andre.chamis.healthproject.domain.workspace.attendance.dto;
 
 import andre.chamis.healthproject.domain.workspace.attendance.model.WorkspaceAttendance;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
 import java.util.Date;
 
 /**
  * Data transfer object (DTO) representing attendance information.
+ *
+ * @param workspaceId  The ID of the workspace.
+ * @param userId       The ID of the user.
+ * @param clockInTime  The timestamp indicating the time of clock-in.
+ * @param clockOutTime The timestamp indicating the time of clock-out.
  */
-@Data
-@AllArgsConstructor
-public final class GetAttendanceDTO {
-    /**
-     * The ID of the workspace.
-     */
-    private final Long workspaceId;
-
-    /**
-     * The ID of the user.
-     */
-    private final Long userId;
-
-    /**
-     * The timestamp indicating the time of clock-in.
-     */
-    private final Date clockInTime;
-
-    /**
-     * The timestamp indicating the time of clock-out.
-     */
-    private final Date clockOutTime;
+public record GetAttendanceDTO(Long workspaceId, Long userId, Date clockInTime, Date clockOutTime) {
 
     /**
      * Creates a GetAttendanceDTO object from a WorkspaceAttendance entity.

@@ -71,28 +71,6 @@ public class WorkspaceMemberService {
     }
 
     /**
-     * Removes a user from a workspace.
-     *
-     * @param workspaceId The ID of the workspace.
-     * @param userId      The ID of the user to remove.
-     * @throws ForbiddenException If the workspace is not active.
-     */
-    public void removeUserFromWorkspace(Long workspaceId, Long userId) {
-        Workspace workspace = workspaceService.getWorkspaceAndCheckOwnership(workspaceId, true);
-
-        log.info("Removing user [{}] from workspace [{}]", userId, workspaceId);
-
-        boolean isMemberDeactivated = workspaceMemberRepository.checkIfWorkspaceMemberIsDeactivated(workspaceId, userId);
-
-        if (!isMemberDeactivated) {
-            throw new ForbiddenException(ErrorMessage.MEMBER_IS_NOT_DEACTIVATED);
-        }
-
-        workspaceMemberRepository.deleteByWorkspaceIdAndUserId(workspaceId, userId);
-        log.info("User [{}] removed from workspace [{}]!", userId, workspaceId);
-    }
-
-    /**
      * Retrieves all members of a workspace.
      *
      * @param workspaceId    The ID of the workspace.

@@ -157,19 +157,7 @@ public class WorkspaceController {
         GetWorkspaceMemberDTO body = workspaceMemberService.addUserToWorkspace(workspaceId, createWorkspaceMemberDTO);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
-
-    /**
-     * Removes a member from a workspace.
-     *
-     * @param workspaceId The ID of the workspace.
-     * @param userId      The ID of the user to remove.
-     * @return A ResponseEntity containing a ResponseMessage indicating success on removal.
-     */
-    @DeleteMapping("{workspaceId}/members")
-    public ResponseEntity<ResponseMessage<Void>> removeMember(@PathVariable Long workspaceId, @RequestParam Long userId) {
-        workspaceMemberService.removeUserFromWorkspace(workspaceId, userId);
-        return ResponseMessageBuilder.build(HttpStatus.OK);
-    }
+    
 
     @PatchMapping("{workspaceId}/members/activate")
     public ResponseEntity<ResponseMessage<Void>> activateMember(@PathVariable Long workspaceId, @RequestParam Long userId) {

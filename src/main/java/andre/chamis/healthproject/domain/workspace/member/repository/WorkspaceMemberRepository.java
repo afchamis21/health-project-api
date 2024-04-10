@@ -4,7 +4,6 @@ import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
 import andre.chamis.healthproject.domain.workspace.member.model.WorkspaceMember;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -44,17 +43,6 @@ public class WorkspaceMemberRepository {
      */
     public void deleteAllByWorkspaceId(Long workspaceId) {
         jpaRepository.deleteAllByWorkspaceId(workspaceId);
-    }
-
-    /**
-     * Deletes a workspace member by the given workspace ID and user ID.
-     *
-     * @param workspaceId The ID of the workspace.
-     * @param userId      The ID of the user.
-     */
-    @Transactional
-    public void deleteByWorkspaceIdAndUserId(Long workspaceId, Long userId) {
-        jpaRepository.deleteByWorkspaceIdAndUserId(workspaceId, userId);
     }
 
     /**
