@@ -2,11 +2,13 @@ package andre.chamis.healthproject.domain.workspace.member.repository;
 
 import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
+import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
 import andre.chamis.healthproject.domain.workspace.member.model.WorkspaceMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -78,7 +80,7 @@ public class WorkspaceMemberRepository {
         jpaRepository.updateWorkspaceMemberByWorkspaceIdAndUserIdSetActive(workspaceId, userId, active);
     }
 
-    public boolean checkIfWorkspaceMemberIsDeactivated(Long workspaceId, Long userId) {
-        return jpaRepository.existsByActiveAndWorkspaceIdAndUserId(false, workspaceId, userId);
+    public List<GetUsernameAndIdDTO> getAllMemberNamesByWorkspaceId(Long workspaceId) {
+        return workspaceMemberDAO.getAllMemberNamesByWorkspaceId(workspaceId);
     }
 }

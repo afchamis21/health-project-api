@@ -1,8 +1,11 @@
 package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.context.ServiceContext;
+import andre.chamis.healthproject.domain.request.PaginationInfo;
+import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockInDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceDTO;
+import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceWithUsernameDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.model.WorkspaceAttendance;
 import andre.chamis.healthproject.domain.workspace.attendance.repository.WorkspaceAttendanceRepository;
 import andre.chamis.healthproject.domain.workspace.member.model.WorkspaceMember;
@@ -13,12 +16,14 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class WorkspaceAttendanceService {
     private final UserService userService;
+    private final WorkspaceService workspaceService;
     private final WorkspaceMemberService workspaceMemberService;
     private final WorkspaceAttendanceRepository workspaceAttendanceRepository;
 
@@ -79,5 +84,15 @@ public class WorkspaceAttendanceService {
         log.info("Clocked out user [{}]", currentUserId);
 
         return attendances.stream().map(GetAttendanceDTO::fromAttendance).toList();
+    }
+
+    public PaginatedResponse<GetAttendanceWithUsernameDTO> getAttendances(Long workspaceId, Optional<Long> userId, PaginationInfo paginationInfo) {
+        workspaceService.checkWorkspaceOwnershipOrThrow(workspaceId);
+
+        if (userId.isEmpty()) {
+            return workspaceAttendanceRepository.findAllByWorkspaceId(workspaceId, paginationInfo);
+        }
+
+        return workspaceAttendanceRepository.findAllByWorkspaceIdAndUserId(workspaceId, userId.get(), paginationInfo);
     }
 }

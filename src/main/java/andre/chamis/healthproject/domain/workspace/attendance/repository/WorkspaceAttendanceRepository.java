@@ -1,5 +1,8 @@
 package andre.chamis.healthproject.domain.workspace.attendance.repository;
 
+import andre.chamis.healthproject.domain.request.PaginationInfo;
+import andre.chamis.healthproject.domain.response.PaginatedResponse;
+import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceWithUsernameDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.model.WorkspaceAttendance;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -10,6 +13,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WorkspaceAttendanceRepository {
     private final WorkspaceAttendanceJpaRepository jpaRepository;
+    private final WorkspaceAttendanceDAO attendanceDAO;
+
 
     /**
      * Saves a workspace attendance record.
@@ -39,5 +44,13 @@ public class WorkspaceAttendanceRepository {
      */
     public List<WorkspaceAttendance> findAllClockedIn(Long currentUserId) {
         return jpaRepository.findAllByUserIdAndClockInTimeNotNullAndClockOutTimeNull(currentUserId);
+    }
+
+    public PaginatedResponse<GetAttendanceWithUsernameDTO> findAllByWorkspaceId(Long workspaceId, PaginationInfo paginationInfo) {
+        return attendanceDAO.searchAllByWorkspaceId(workspaceId, paginationInfo);
+    }
+
+    public PaginatedResponse<GetAttendanceWithUsernameDTO> findAllByWorkspaceIdAndUserId(Long workspaceId, Long userId, PaginationInfo paginationInfo) {
+        return attendanceDAO.searchAllByWorkspaceIdAndUsername(workspaceId, userId, paginationInfo);
     }
 }

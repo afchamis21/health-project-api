@@ -52,14 +52,14 @@ public class WorkspaceRepository {
     }
 
     /**
-     * Retrieves a paginated list of workspaces owned by a user.
+     * Retrieves a paginated list of workspaces that a user is a member of.
      *
-     * @param userId         The ID of the user who owns the workspaces.
+     * @param userId         The ID of the user who is a member of the workspaces.
      * @param paginationInfo The pagination information.
      * @return A paginated response containing the list of workspaces.
      */
-    public PaginatedResponse<GetWorkspaceDTO> findWorkspacesByOwnerId(Long userId, PaginationInfo paginationInfo) {
-        return workspaceDAO.getWorkspacesByOwnerId(userId, paginationInfo);
+    public PaginatedResponse<GetWorkspaceDTO> findWorkspacesByMemberId(Long userId, PaginationInfo paginationInfo) {
+        return workspaceDAO.getWorkspacesByMemberId(userId, paginationInfo);
     }
 
     /**
@@ -72,5 +72,9 @@ public class WorkspaceRepository {
      */
     public PaginatedResponse<GetWorkspaceDTO> searchWorkspacesByNameAndMemberId(Long userId, String name, PaginationInfo paginationInfo) {
         return workspaceDAO.searchWorkspacesByNameAndMemberId(userId, name, paginationInfo);
+    }
+
+    public boolean existsWorkspaceByWorkspaceIdAndOwnerId(Long workspaceId, Long ownerId) {
+        return jpaRepository.existsWorkspaceByWorkspaceIdAndOwnerId(workspaceId, ownerId);
     }
 }

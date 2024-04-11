@@ -139,7 +139,7 @@ public class UserService {
                 Olá aqui está a sua senha provisória para continuar o cadastro em nosso site!
                                 
                 {{OTP}}
-                           
+                                
                 Você será solicitado a mudar sua senha e atualizar as informações quando fizer login pela primeira vez!
                 """.replace("{{OTP}}", oneTimePassword);
 
@@ -535,7 +535,7 @@ public class UserService {
         if (wasUserPaymentActive) {
             emailService.sendSimpleMail(user.getEmail(), """
                             Olá, parece que tivemos um problema ao processar seu pagamento...
-                                                
+                                                        
                             Por causa disso, vamos revogar seu acesso a plataforma. Para retomar seu acesso, acesse nosso site _aqui_, e faça o pagamento novamente.
                             """,
                     "Erro ao processar pagamento"
@@ -563,7 +563,7 @@ public class UserService {
 
         emailService.sendSimpleMail(user.getEmail(), """
                         Olá, sua assinatura para usar nosso aplicativo chegou ao fim...
-                                            
+                                                
                         Convidamos você a retomar sua assinatura por especial *aqui*
                         """,
                 "Sua assinatura acabou"
@@ -609,16 +609,6 @@ public class UserService {
     }
 
     /**
-     * Retrieves the workspaces owned by the current user.
-     *
-     * @param paginationInfo Information about pagination.
-     * @return A paginated response containing the workspaces.
-     */
-    public PaginatedResponse<GetWorkspaceDTO> getUserWorkspaces(PaginationInfo paginationInfo) {
-        return workspaceRepository.findWorkspacesByOwnerId(ServiceContext.getContext().getUserId(), paginationInfo);
-    }
-
-    /**
      * Searches all workspaces user belongs to, filtering by name, if name is provided
      *
      * @param name           The name of the workspace.
@@ -626,6 +616,12 @@ public class UserService {
      * @return A paginated response containing the matching workspaces.
      */
     public PaginatedResponse<GetWorkspaceDTO> searchWorkspacesByNameAndMemberId(String name, PaginationInfo paginationInfo) {
+        Long currentUserId = ServiceContext.getContext().getUserId();
+
+        if (name == null || name.isBlank()) {
+            return workspaceRepository.findWorkspacesByMemberId(currentUserId, paginationInfo);
+        }
+
         return workspaceRepository.searchWorkspacesByNameAndMemberId(ServiceContext.getContext().getUserId(), name, paginationInfo);
     }
 

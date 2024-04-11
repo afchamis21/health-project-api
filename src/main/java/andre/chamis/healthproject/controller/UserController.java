@@ -118,20 +118,6 @@ public class UserController {
     }
 
     /**
-     * Retrieves user workspaces.
-     *
-     * @param paginationInfo Information for pagination.
-     * @return A ResponseEntity containing a ResponseMessage with user workspaces information.
-     */
-    @GetMapping("workspaces")
-    public ResponseEntity<ResponseMessage<PaginatedResponse<GetWorkspaceDTO>>> getUserWorkspaces(
-            PaginationInfo paginationInfo
-    ) {
-        PaginatedResponse<GetWorkspaceDTO> body = userService.getUserWorkspaces(paginationInfo);
-        return ResponseMessageBuilder.build(body, HttpStatus.OK);
-    }
-
-    /**
      * Searches user workspaces.
      *
      * @param name           The name to search for.

@@ -6,6 +6,7 @@ import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
+import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.domain.workspace.member.dto.CreateWorkspaceMemberDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -86,16 +88,6 @@ public class WorkspaceMemberService {
         return members;
     }
 
-    /**
-     * Checks if a user is a member of a workspace.
-     *
-     * @param workspaceId The ID of the workspace.
-     * @param memberId    The ID of the user.
-     * @return True if the user is a member of the workspace, otherwise false.
-     */
-    protected boolean isMemberOfWorkspace(Long workspaceId, Long memberId) {
-        return workspaceMemberRepository.existsByWorkspaceIdAndUserId(workspaceId, memberId);
-    }
 
     /**
      * Retrieves a workspace member by ID of the workspace and ID of the user
@@ -139,7 +131,7 @@ public class WorkspaceMemberService {
      */
     public void activateWorkspaceMember(Long workspaceId, Long userId) {
         // TODO might want to implement ADMIN users later on
-        Workspace workspace = workspaceService.getWorkspaceAndCheckOwnership(workspaceId, true);
+        workspaceService.checkWorkspaceOwnershipOrThrow(workspaceId);
 
         workspaceMemberRepository.updateWorkspaceMemberSetActive(workspaceId, userId, true);
     }
@@ -152,8 +144,15 @@ public class WorkspaceMemberService {
      */
     public void deactivateWorkspaceMember(Long workspaceId, Long userId) {
         // TODO might want to implement ADMIN users later on
-        Workspace workspace = workspaceService.getWorkspaceAndCheckOwnership(workspaceId, true);
+        workspaceService.checkWorkspaceOwnershipOrThrow(workspaceId);
 
         workspaceMemberRepository.updateWorkspaceMemberSetActive(workspaceId, userId, false);
+    }
+
+    public List<GetUsernameAndIdDTO> getAllMemberNamesOfWorkspace(Long workspaceId) {
+        // TODO might want to implement ADMIN users later on
+        workspaceService.checkWorkspaceOwnershipOrThrow(workspaceId);
+
+        return workspaceMemberRepository.getAllMemberNamesByWorkspaceId(workspaceId);
     }
 }

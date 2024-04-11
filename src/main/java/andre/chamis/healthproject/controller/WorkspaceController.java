@@ -5,8 +5,10 @@ import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.response.ResponseMessage;
 import andre.chamis.healthproject.domain.response.ResponseMessageBuilder;
+import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockInDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceDTO;
+import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceWithUsernameDTO;
 import andre.chamis.healthproject.domain.workspace.dto.CreateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.UpdateWorkspaceDTO;
@@ -22,6 +24,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -65,6 +68,21 @@ public class WorkspaceController {
     @PostMapping("/clock-out")
     public ResponseEntity<ResponseMessage<List<GetAttendanceDTO>>> clockOut() {
         List<GetAttendanceDTO> body = workspaceAttendanceService.handleClockOut();
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
+
+    /**
+     * Gets a paginated list of the attendances of a workspace. If username is provided, gets only for the users with that username.
+     *
+     * @return A ResponseEntity containing a ResponseMessage with the attendance information on success.
+     */
+    @GetMapping("{workspaceId}/attendances")
+    public ResponseEntity<ResponseMessage<PaginatedResponse<GetAttendanceWithUsernameDTO>>> getAttendances(
+            @PathVariable Long workspaceId,
+            @RequestParam(required = false) Optional<Long> userId,
+            PaginationInfo paginationInfo
+    ) {
+        PaginatedResponse<GetAttendanceWithUsernameDTO> body = workspaceAttendanceService.getAttendances(workspaceId, userId, paginationInfo);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 
@@ -146,6 +164,21 @@ public class WorkspaceController {
     }
 
     /**
+     * Retrieves the names of all members of a workspace.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @return A ResponseEntity containing a ResponseMessage with the names of the workspace members on success.
+     */
+    @GetMapping("{workspaceId}/members/names")
+    public ResponseEntity<ResponseMessage<List<GetUsernameAndIdDTO>>> getMemberNames(
+            @PathVariable Long workspaceId
+
+    ) {
+        List<GetUsernameAndIdDTO> body = workspaceMemberService.getAllMemberNamesOfWorkspace(workspaceId);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
+
+    /**
      * Adds a member to a workspace.
      *
      * @param workspaceId              The ID of the workspace.
@@ -157,7 +190,7 @@ public class WorkspaceController {
         GetWorkspaceMemberDTO body = workspaceMemberService.addUserToWorkspace(workspaceId, createWorkspaceMemberDTO);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
-    
+
 
     @PatchMapping("{workspaceId}/members/activate")
     public ResponseEntity<ResponseMessage<Void>> activateMember(@PathVariable Long workspaceId, @RequestParam Long userId) {

@@ -182,7 +182,7 @@ public class WorkspaceService {
         Workspace workspace = activeWorkspaceOnly
                 ? getWorkspaceIfActiveOrThrow(workspaceId) : getWorkspaceByIdOrThrow(workspaceId);
 
-        checkWorkspaceOwnership(workspace);
+        checkWorkspaceOwnershipOrThrow(workspace);
 
         return workspace;
     }
@@ -193,7 +193,7 @@ public class WorkspaceService {
      * @param workspace The workspace to check.
      * @throws ForbiddenException If the current user is not the owner of the workspace.
      */
-    private void checkWorkspaceOwnership(Workspace workspace) {
+    private void checkWorkspaceOwnershipOrThrow(Workspace workspace) {
         log.info("Checking if logged in user is owner of workspace [{}]", workspace);
         Long currentUserId = ServiceContext.getContext().getUserId();
 
@@ -259,5 +259,21 @@ public class WorkspaceService {
         }
 
         return GetWorkspaceDTO.fromWorkspace(workspace);
+    }
+
+    /**
+     * Checks if current user is owner of a workspace and throws a {@code ForbiddenException}
+     * if it isn't
+     *
+     * @param workspaceId The ID of the workspace to be checked.
+     * @throws ForbiddenException If user is not owner of workspace.
+     */
+    public void checkWorkspaceOwnershipOrThrow(Long workspaceId) {
+        Long currentUserId = ServiceContext.getContext().getUserId();
+        boolean isWorkspaceOwner = workspaceRepository.existsWorkspaceByWorkspaceIdAndOwnerId(workspaceId, currentUserId);
+
+        if (!isWorkspaceOwner) {
+            throw new ForbiddenException(ErrorMessage.WORKSPACE_OWNERSHIP);
+        }
     }
 }

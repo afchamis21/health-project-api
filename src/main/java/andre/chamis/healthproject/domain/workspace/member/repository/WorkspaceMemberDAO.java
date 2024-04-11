@@ -4,6 +4,7 @@ import andre.chamis.healthproject.dao.PaginatedDAO;
 import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
+import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -102,5 +103,23 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
             }
             return results;
         };
+    }
+
+    public List<GetUsernameAndIdDTO> getAllMemberNamesByWorkspaceId(Long workspaceId) {
+        String query = "SELECT u.username, u.user_id FROM workspace_user wu JOIN users u ON wu.user_id = u.user_id WHERE wu.workspace_id = :workspaceId; ";
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("workspaceId", workspaceId);
+
+        return jdbcTemplate.query(query, params, (rs) -> {
+            List<GetUsernameAndIdDTO> results = new ArrayList<>();
+            while (rs.next()) {
+                results.add(new GetUsernameAndIdDTO(
+                        rs.getString(1),
+                        rs.getLong(2)
+                ));
+            }
+            return results;
+        });
     }
 }
