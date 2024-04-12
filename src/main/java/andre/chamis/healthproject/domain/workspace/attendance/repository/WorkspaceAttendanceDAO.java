@@ -42,6 +42,7 @@ public class WorkspaceAttendanceDAO extends PaginatedDAO<GetAttendanceWithUserna
                     JOIN users u ON wa.user_id = u.user_id
                 WHERE wa.workspace_id = :workspaceId
                     AND wa.clock_in_time <= :now
+                    ORDER BY wa.clock_in_time DESC
                 """;
     }
 
@@ -60,6 +61,7 @@ public class WorkspaceAttendanceDAO extends PaginatedDAO<GetAttendanceWithUserna
                 WHERE wa.workspace_id = :workspaceId
                     AND u.user_id = :userId
                     AND wa.clock_in_time <= :now
+                    ORDER BY wa.clock_in_time DESC
                 """;
     }
 
@@ -90,8 +92,8 @@ public class WorkspaceAttendanceDAO extends PaginatedDAO<GetAttendanceWithUserna
                 results.add(new GetAttendanceWithUsernameDTO(
                         rs.getLong("workspace_id"),
                         rs.getLong("user_id"),
-                        rs.getDate("clock_in_time"),
-                        rs.getDate("clock_out_time"),
+                        rs.getTimestamp("clock_in_time"),
+                        rs.getTimestamp("clock_out_time"),
                         rs.getString("username")
                 ));
             }

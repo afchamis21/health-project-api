@@ -2,7 +2,7 @@ package andre.chamis.healthproject.domain.workspace.attendance.dto;
 
 import andre.chamis.healthproject.domain.workspace.attendance.model.WorkspaceAttendance;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * Data transfer object (DTO) representing attendance information.
@@ -12,7 +12,7 @@ import java.util.Date;
  * @param clockInTime  The timestamp indicating the time of clock-in.
  * @param clockOutTime The timestamp indicating the time of clock-out.
  */
-public record GetAttendanceDTO(Long workspaceId, Long userId, Date clockInTime, Date clockOutTime) {
+public record GetAttendanceDTO(Long workspaceId, Long userId, LocalDateTime clockInTime, LocalDateTime clockOutTime) {
 
     /**
      * Creates a GetAttendanceDTO object from a WorkspaceAttendance entity.

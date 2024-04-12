@@ -5,8 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * Represents attendance information for a user in a workspace.
@@ -27,10 +26,10 @@ public class WorkspaceAttendance {
     private Long userId;
 
     @Column(name = "clock_in_time")
-    private Date clockInTime;
+    private LocalDateTime clockInTime;
 
     @Column(name = "clock_out_time")
-    private Date clockOutTime;
+    private LocalDateTime clockOutTime;
 
     /**
      * Constructs a new WorkspaceAttendance object with the specified workspace ID and user ID,
@@ -42,7 +41,7 @@ public class WorkspaceAttendance {
     public WorkspaceAttendance(Long workspaceId, Long userId) {
         this.workspaceId = workspaceId;
         this.userId = userId;
-        this.clockInTime = Date.from(Instant.now());
+        this.clockInTime = LocalDateTime.now();
     }
 
     @Override

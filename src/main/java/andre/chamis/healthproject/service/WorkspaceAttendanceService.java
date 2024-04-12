@@ -13,8 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,7 +74,7 @@ public class WorkspaceAttendanceService {
     private List<GetAttendanceDTO> clockOut(Long currentUserId) {
         List<WorkspaceAttendance> attendances = workspaceAttendanceRepository.findAllClockedIn(currentUserId);
 
-        attendances.forEach(attendance -> attendance.setClockOutTime(Date.from(Instant.now())));
+        attendances.forEach(attendance -> attendance.setClockOutTime(LocalDateTime.now()));
 
         attendances = workspaceAttendanceRepository.save(attendances);
 

@@ -106,7 +106,13 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
     }
 
     public List<GetUsernameAndIdDTO> getAllMemberNamesByWorkspaceId(Long workspaceId) {
-        String query = "SELECT u.username, u.user_id FROM workspace_user wu JOIN users u ON wu.user_id = u.user_id WHERE wu.workspace_id = :workspaceId; ";
+        String query = """
+                SELECT u.username, u.user_id
+                FROM workspace_user wu
+                    JOIN users u ON wu.user_id = u.user_id
+                    JOIN workspaces w ON wu.workspace_id = w.workspace_id
+                    WHERE wu.workspace_id = :workspaceId AND u.user_id != w.owner_id;
+                """;
 
         Map<String, Object> params = new HashMap<>();
         params.put("workspaceId", workspaceId);
