@@ -3,9 +3,10 @@ package andre.chamis.healthproject.service;
 import andre.chamis.healthproject.context.ServiceContext;
 import andre.chamis.healthproject.domain.exception.BadArgumentException;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
+import andre.chamis.healthproject.domain.patient.dto.CreatePatientDTO;
+import andre.chamis.healthproject.domain.patient.model.Patient;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.user.model.User;
-import andre.chamis.healthproject.domain.workspace.dto.CreateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.UpdateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.member.model.WorkspaceMember;
@@ -25,19 +26,20 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class WorkspaceService {
+    private final UserService userService;
+    private final PatientService patientService;
     private final WorkspaceRepository workspaceRepository;
     private final WorkspaceMemberRepository workspaceMemberRepository;
-    private final UserService userService;
 
     /**
      * Creates a new workspace.
      *
-     * @param createWorkspaceDTO The DTO containing workspace creation details.
+     * @param createPatientDTO The DTO containing workspace creation details.
      * @return The details of the created workspace.
      * @throws ForbiddenException   If the current user is not a paid user.
      * @throws BadArgumentException If the workspace name is missing or invalid.
      */
-    public GetWorkspaceDTO createWorkspace(CreateWorkspaceDTO createWorkspaceDTO) {
+    public GetWorkspaceDTO createWorkspace(CreatePatientDTO createPatientDTO) {
         User user = userService.findCurrentUser();
         Long currentUserId = user.getUserId();
 
@@ -45,19 +47,24 @@ public class WorkspaceService {
             throw new ForbiddenException(ErrorMessage.PAID_USER_ONLY);
         }
 
-        log.info("Creating workspace with name [{}] and ownerId [{}]", createWorkspaceDTO.name(), currentUserId);
+        log.info("Creating workspace with name [{}] and ownerId [{}]", createPatientDTO.name(), currentUserId);
 
-        if (null == createWorkspaceDTO.name()) {
+        if (null == createPatientDTO.name()) {
             throw new BadArgumentException(ErrorMessage.MISSING_WORKSPACE_NAME);
         }
 
-        if (createWorkspaceDTO.name().length() < 3 || createWorkspaceDTO.name().length() > 50) {
+        if (createPatientDTO.name().length() < 3 || createPatientDTO.name().length() > 50) {
             throw new BadArgumentException(ErrorMessage.INVALID_WORKSPACE_NAME);
         }
 
+        Patient patient = patientService.createPatient(createPatientDTO);
+
+        String fullPatientName = patient.getName() + " " + patient.getSurname();
+
         Workspace workspace = new Workspace();
-        workspace.setWorkspaceName(createWorkspaceDTO.name());
+        workspace.setWorkspaceName(fullPatientName);
         workspace.setOwnerId(currentUserId);
+        workspace.setPatientId(patient.getPatientId());
         workspace.setCreateDt(Date.from(Instant.now()));
         workspace.setActive(true);
 
@@ -249,7 +256,7 @@ public class WorkspaceService {
     public GetWorkspaceDTO getWorkspaceById(Long workspaceId) {
         Workspace workspace = getWorkspaceByIdOrThrow(workspaceId);
 
-        boolean isUserMemberOfWorkspace = workspaceMemberRepository.existsByWorkspaceIdAndUserId(
+        boolean isUserMemberOfWorkspace = workspaceMemberRepository.existsByWorkspaceIdAndUserIdAndIsActive(
                 workspaceId,
                 ServiceContext.getContext().getUserId()
         );

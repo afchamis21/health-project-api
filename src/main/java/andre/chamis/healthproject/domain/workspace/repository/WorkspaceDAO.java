@@ -61,6 +61,7 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
                     JOIN workspace_user wu ON w.workspace_id = wu.workspace_id
                          WHERE wu.user_id = :userId AND wu.is_active = true
                          AND w.workspace_name ILIKE :name || '%'
+                         AND (w.is_active OR w.owner_id = wu.user_id)
                          AND w.create_dt <= :now
                 """;
     }
@@ -71,6 +72,7 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
                     JOIN workspace_user wu ON w.workspace_id = wu.workspace_id
                          WHERE wu.user_id = :userId AND wu.is_active = true
                          AND w.workspace_name ILIKE :name || '%'
+                         AND (w.is_active OR w.owner_id = wu.user_id)
                          AND w.create_dt <= :now
                 """;
     }

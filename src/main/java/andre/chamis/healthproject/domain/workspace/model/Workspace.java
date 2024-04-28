@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -29,6 +30,12 @@ public class Workspace {
     private Long ownerId;
 
     /**
+     * The ID of the owner of the workspace.
+     */
+    @Column(name = "patient_id")
+    private Long patientId;
+
+    /**
      * The name of the workspace.
      */
     @Column(name = "workspace_name")
@@ -44,7 +51,7 @@ public class Workspace {
      * The update date of the workspace.
      */
     @Column(name = "update_dt")
-    private Date updateDt;
+    private LocalDateTime updateDt;
 
     /**
      * Indicates whether the workspace is active or not.

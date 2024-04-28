@@ -17,9 +17,10 @@ interface WorkspaceMemberJpaRepository extends JpaRepository<WorkspaceMember, Lo
      *
      * @param workspaceId The ID of the workspace.
      * @param userId      The ID of the user.
+     * @param active      The status of the user.
      * @return {@code true} if a workspace member exists, otherwise {@code false}.
      */
-    boolean existsByWorkspaceIdAndUserId(Long workspaceId, Long userId);
+    boolean existsByWorkspaceIdAndUserIdAndActive(Long workspaceId, Long userId, boolean active);
 
     /**
      * Deletes all workspace members by the given workspace ID.
@@ -43,5 +44,12 @@ interface WorkspaceMemberJpaRepository extends JpaRepository<WorkspaceMember, Lo
     @Query("UPDATE WorkspaceMember wm SET wm.active = :active WHERE wm.workspaceId = :workspaceId AND wm.userId = :userId ")
     void updateWorkspaceMemberByWorkspaceIdAndUserIdSetActive(Long workspaceId, Long userId, boolean active);
 
-    boolean existsByActiveAndWorkspaceIdAndUserId(Boolean active, Long workspaceId, Long userId);
+    /**
+     * Checks if a workspace member with the given workspace ID and user ID exists.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user.
+     * @return {@code true} if a workspace member exists, otherwise {@code false}.
+     */
+    boolean existsByWorkspaceIdAndUserId(Long workspaceId, Long userId);
 }

@@ -28,14 +28,14 @@ public class WorkspaceMemberRepository {
     }
 
     /**
-     * Checks if a workspace member exists by the given workspace ID and user ID.
+     * Checks if a workspace member exists by the given workspace ID and user ID and active status.
      *
      * @param workspaceId The ID of the workspace.
      * @param userId      The ID of the user.
      * @return {@code true} if a workspace member exists, otherwise {@code false}.
      */
-    public boolean existsByWorkspaceIdAndUserId(Long workspaceId, Long userId) {
-        return jpaRepository.existsByWorkspaceIdAndUserId(workspaceId, userId);
+    public boolean existsByWorkspaceIdAndUserIdAndIsActive(Long workspaceId, Long userId) {
+        return jpaRepository.existsByWorkspaceIdAndUserIdAndActive(workspaceId, userId, true);
     }
 
     /**
@@ -82,5 +82,16 @@ public class WorkspaceMemberRepository {
 
     public List<GetUsernameAndIdDTO> getAllMemberNamesByWorkspaceId(Long workspaceId) {
         return workspaceMemberDAO.getAllMemberNamesByWorkspaceId(workspaceId);
+    }
+
+    /**
+     * Checks if a workspace member exists by the given workspace ID and user ID.
+     *
+     * @param workspaceId The ID of the workspace.
+     * @param userId      The ID of the user.
+     * @return {@code true} if a workspace member exists, otherwise {@code false}.
+     */
+    public boolean existsByWorkspaceIdAndUserId(Long workspaceId, Long userId) {
+        return jpaRepository.existsByWorkspaceIdAndUserId(workspaceId, userId);
     }
 }

@@ -1,6 +1,7 @@
 package andre.chamis.healthproject.controller;
 
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
+import andre.chamis.healthproject.domain.patient.dto.CreatePatientDTO;
 import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.response.ResponseMessage;
@@ -9,7 +10,6 @@ import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockInDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceWithUsernameDTO;
-import andre.chamis.healthproject.domain.workspace.dto.CreateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.dto.UpdateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.CreateWorkspaceMemberDTO;
@@ -39,12 +39,12 @@ public class WorkspaceController {
     /**
      * Creates a new workspace.
      *
-     * @param createWorkspaceDTO The DTO containing workspace creation information.
+     * @param createPatientDTO The DTO containing workspace creation information.
      * @return A ResponseEntity containing a ResponseMessage with the created workspace information on success.
      */
     @PostMapping("create")
-    public ResponseEntity<ResponseMessage<GetWorkspaceDTO>> createWorkspace(@RequestBody CreateWorkspaceDTO createWorkspaceDTO) {
-        GetWorkspaceDTO body = workspaceService.createWorkspace(createWorkspaceDTO);
+    public ResponseEntity<ResponseMessage<GetWorkspaceDTO>> createWorkspace(@RequestBody CreatePatientDTO createPatientDTO) {
+        GetWorkspaceDTO body = workspaceService.createWorkspace(createPatientDTO);
         return ResponseMessageBuilder.build(body, HttpStatus.CREATED);
     }
 
