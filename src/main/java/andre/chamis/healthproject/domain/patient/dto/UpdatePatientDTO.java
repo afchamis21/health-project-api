@@ -4,8 +4,7 @@ import andre.chamis.healthproject.domain.patient.model.Gender;
 
 import java.util.Date;
 
-public record UpdatePatientDTO(Long patientId,
-                               String name,
+public record UpdatePatientDTO(String name,
                                String surname,
                                String document,
                                Gender gender,

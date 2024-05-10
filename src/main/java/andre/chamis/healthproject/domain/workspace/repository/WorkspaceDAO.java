@@ -57,12 +57,14 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
 
     private String getSearchByWorkspaceNameAndMemberIdQuery() {
         return """
-                SELECT w.workspace_id, w.owner_id, w.workspace_name,w.create_dt, w.is_active, w.update_dt FROM workspaces w
+                SELECT w.workspace_id, w.owner_id,w.create_dt, w.is_active, w.update_dt, w.patient_id, CONCAT(p.name, COALESCE(' ' || p.surname, '')) AS full_name
+                FROM workspaces w
                     JOIN workspace_user wu ON w.workspace_id = wu.workspace_id
-                         WHERE wu.user_id = :userId AND wu.is_active = true
-                         AND w.workspace_name ILIKE :name || '%'
-                         AND (w.is_active OR w.owner_id = wu.user_id)
-                         AND w.create_dt <= :now
+                    JOIN patients p ON w.patient_id = p.patient_id
+                WHERE wu.user_id = :userId AND wu.is_active = true
+                  AND w.workspace_name ILIKE :name || '%'
+                  AND (w.is_active OR w.owner_id = wu.user_id)
+                  AND w.create_dt <= :now
                 """;
     }
 
@@ -79,10 +81,12 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
 
     private String getSearchByMemberIdQuery() {
         return """
-                SELECT w.workspace_id, w.owner_id, w.workspace_name,w.create_dt, w.is_active, w.update_dt FROM workspaces w
+                SELECT w.workspace_id, w.owner_id,w.create_dt, w.is_active, w.update_dt, w.patient_id, CONCAT(p.name, COALESCE(' ' || p.surname, '')) AS full_name
+                FROM workspaces w
                     JOIN workspace_user wu ON w.workspace_id = wu.workspace_id
-                         WHERE wu.user_id = :userId AND wu.is_active = true
-                         AND w.create_dt <= :now
+                    JOIN patients p ON w.patient_id = p.patient_id
+                WHERE wu.user_id = :userId AND wu.is_active = true
+                AND w.create_dt <= :now
                 """;
     }
 
@@ -112,8 +116,9 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
             while (rs.next()) {
                 results.add(new GetWorkspaceDTO(
                         rs.getLong("workspace_id"),
-                        rs.getString("workspace_name"),
+                        rs.getString("full_name"),
                         rs.getLong("owner_id"),
+                        rs.getLong("patient_id"),
                         rs.getBoolean("is_active"),
                         rs.getDate("create_dt")
                 ));

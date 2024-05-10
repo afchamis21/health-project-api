@@ -8,7 +8,6 @@ import andre.chamis.healthproject.domain.patient.model.Patient;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
-import andre.chamis.healthproject.domain.workspace.dto.UpdateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.member.model.WorkspaceMember;
 import andre.chamis.healthproject.domain.workspace.member.repository.WorkspaceMemberRepository;
 import andre.chamis.healthproject.domain.workspace.model.Workspace;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.Objects;
 
 
 @Slf4j
@@ -59,10 +57,7 @@ public class WorkspaceService {
 
         Patient patient = patientService.createPatient(createPatientDTO);
 
-        String fullPatientName = patient.getName() + " " + patient.getSurname();
-
         Workspace workspace = new Workspace();
-        workspace.setWorkspaceName(fullPatientName);
         workspace.setOwnerId(currentUserId);
         workspace.setPatientId(patient.getPatientId());
         workspace.setCreateDt(Date.from(Instant.now()));
@@ -77,7 +72,11 @@ public class WorkspaceService {
         workspaceMemberRepository.save(member);
         log.info("Owner saved to database");
 
-        return GetWorkspaceDTO.fromWorkspace(workspace);
+        String workspaceName = patient.getSurname() != null && !patient.getSurname().isBlank()
+                ? patient.getName() + " " + patient.getSurname()
+                : patient.getName();
+
+        return new GetWorkspaceDTO(workspace, workspaceName);
     }
 
     /**
@@ -106,9 +105,8 @@ public class WorkspaceService {
      * Deactivates a workspace.
      *
      * @param workspaceId The ID of the workspace to deactivate.
-     * @return The details of the deactivated workspace.
      */
-    public GetWorkspaceDTO deactivateWorkspace(Long workspaceId) {
+    public void deactivateWorkspace(Long workspaceId) {
         Workspace workspace = getWorkspaceAndCheckOwnership(workspaceId, false);
 
         log.info("Deactivating workspace [{}]", workspaceId);
@@ -117,17 +115,14 @@ public class WorkspaceService {
         workspaceRepository.save(workspace);
 
         log.info("Workspace [{}] deactivated!", workspaceId);
-
-        return GetWorkspaceDTO.fromWorkspace(workspace);
     }
 
     /**
      * Activates a workspace.
      *
      * @param workspaceId The ID of the workspace to activate.
-     * @return The details of the activated workspace.
      */
-    public GetWorkspaceDTO activateWorkspace(Long workspaceId) {
+    public void activateWorkspace(Long workspaceId) {
         Workspace workspace = getWorkspaceAndCheckOwnership(workspaceId, false);
 
         log.info("Activating workspace [{}]", workspaceId);
@@ -136,8 +131,6 @@ public class WorkspaceService {
         workspaceRepository.save(workspace);
 
         log.info("Workspace [{}] activated!", workspaceId);
-
-        return GetWorkspaceDTO.fromWorkspace(workspace);
     }
 
     /**
@@ -215,57 +208,6 @@ public class WorkspaceService {
         if (!isUserOwnerOfWorkspace) {
             throw new ForbiddenException(ErrorMessage.WORKSPACE_OWNERSHIP);
         }
-    }
-
-    /**
-     * Updates a workspace.
-     *
-     * @param workspaceId        The ID of the workspace to update.
-     * @param updateWorkspaceDTO The DTO containing workspace update details.
-     * @return The details of the updated workspace.
-     * @throws ForbiddenException   If the workspace is inactive or if the current user is not the owner of the workspace.
-     * @throws BadArgumentException If the updated workspace name is blank.
-     */
-    public GetWorkspaceDTO updateWorkspace(Long workspaceId, UpdateWorkspaceDTO updateWorkspaceDTO) {
-        Workspace workspace = getWorkspaceAndCheckOwnership(workspaceId, true);
-
-        log.info("Updating workspace [{}] with params [{}]", workspaceId, updateWorkspaceDTO);
-
-        boolean updated = false;
-
-        if (null != updateWorkspaceDTO.name() && updateWorkspaceDTO.name().isBlank()) {
-            workspace.setWorkspaceName(updateWorkspaceDTO.name());
-            updated = true;
-        }
-
-        if (updated) {
-            log.info("Workspace was updated! Saving to database");
-            workspace = workspaceRepository.save(workspace);
-        }
-
-        return GetWorkspaceDTO.fromWorkspace(workspace);
-    }
-
-    /**
-     * Retrieves a workspace by ID.
-     *
-     * @param workspaceId The ID of the workspace.
-     * @return The details of the retrieved workspace.
-     * @throws ForbiddenException If the user is not a member or owner of the workspace.
-     */
-    public GetWorkspaceDTO getWorkspaceById(Long workspaceId) {
-        Workspace workspace = getWorkspaceByIdOrThrow(workspaceId);
-
-        boolean isUserMemberOfWorkspace = workspaceMemberRepository.existsByWorkspaceIdAndUserIdAndIsActive(
-                workspaceId,
-                ServiceContext.getContext().getUserId()
-        );
-
-        if (!isUserMemberOfWorkspace && !Objects.equals(workspace.getOwnerId(), ServiceContext.getContext().getUserId())) {
-            throw new ForbiddenException(ErrorMessage.INVALID_WORKSPACE_ACCESS);
-        }
-
-        return GetWorkspaceDTO.fromWorkspace(workspace);
     }
 
     /**

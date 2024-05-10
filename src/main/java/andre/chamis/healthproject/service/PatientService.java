@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Optional;
 
-// TODO implementar controller
 // TODO começar a implementar documentos (também vou precisar adicionar fotos aos enfermeiros)
 
 @Repository
@@ -63,6 +62,7 @@ public class PatientService {
      * @throws BadArgumentException if the patient already exists or if the RG (Registro Geral) is invalid
      */
     public Patient createPatient(CreatePatientDTO createPatientDTO) {
+        // TODO need to validate the fields
         Patient patient = new Patient();
         patient.setName(createPatientDTO.name());
         patient.setSurname(createPatientDTO.surname());
@@ -87,14 +87,14 @@ public class PatientService {
     /**
      * Updates an existing patient.
      *
+     * @param patientId        the ID of the patient to be updated
      * @param updatePatientDTO the DTO containing the updated patient information
      * @return the updated patient
      * @throws BadArgumentException if the patient is not found, if the RG (Registro Geral) is invalid
      */
-    public Patient updatePatient(UpdatePatientDTO updatePatientDTO) {
-        Patient patient = fetchPatientByIdOrThrow(updatePatientDTO.patientId());
+    public Patient updatePatient(Long patientId, UpdatePatientDTO updatePatientDTO) {
+        Patient patient = fetchPatientByIdOrThrow(patientId);
         boolean updated = false;
-
 
         if (updatePatientDTO.name() != null) {
             patient.setName(updatePatientDTO.name());

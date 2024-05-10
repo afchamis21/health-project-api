@@ -11,7 +11,6 @@ import andre.chamis.healthproject.domain.workspace.attendance.dto.ClockInDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceWithUsernameDTO;
 import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
-import andre.chamis.healthproject.domain.workspace.dto.UpdateWorkspaceDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.CreateWorkspaceMemberDTO;
 import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
 import andre.chamis.healthproject.service.WorkspaceAttendanceService;
@@ -86,17 +85,6 @@ public class WorkspaceController {
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 
-    /**
-     * Retrieves workspace information.
-     *
-     * @param workspaceId The ID of the workspace to retrieve.
-     * @return A ResponseEntity containing a ResponseMessage with the retrieved workspace information on success.
-     */
-    @GetMapping("{workspaceId}")
-    public ResponseEntity<ResponseMessage<GetWorkspaceDTO>> getWorkspace(@PathVariable Long workspaceId) {
-        GetWorkspaceDTO body = workspaceService.getWorkspaceById(workspaceId);
-        return ResponseMessageBuilder.build(body, HttpStatus.OK);
-    }
 
     /**
      * Deletes a workspace.
@@ -118,8 +106,8 @@ public class WorkspaceController {
      */
     @PatchMapping("{workspaceId}/deactivate")
     public ResponseEntity<ResponseMessage<GetWorkspaceDTO>> deactivateWorkspace(@PathVariable Long workspaceId) {
-        GetWorkspaceDTO body = workspaceService.deactivateWorkspace(workspaceId);
-        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+        workspaceService.deactivateWorkspace(workspaceId);
+        return ResponseMessageBuilder.build(HttpStatus.OK);
     }
 
     /**
@@ -129,22 +117,9 @@ public class WorkspaceController {
      * @return A ResponseEntity containing a ResponseMessage with the activated workspace information on success.
      */
     @PatchMapping("{workspaceId}/activate")
-    public ResponseEntity<ResponseMessage<GetWorkspaceDTO>> activateWorkspace(@PathVariable Long workspaceId) {
-        GetWorkspaceDTO body = workspaceService.activateWorkspace(workspaceId);
-        return ResponseMessageBuilder.build(body, HttpStatus.OK);
-    }
-
-    /**
-     * Updates workspace information.
-     *
-     * @param workspaceId        The ID of the workspace to update.
-     * @param updateWorkspaceDTO The DTO containing updated workspace information.
-     * @return A ResponseEntity containing a ResponseMessage with the updated workspace information on success.
-     */
-    @PutMapping("{workspaceId}/update")
-    public ResponseEntity<ResponseMessage<GetWorkspaceDTO>> updateWorkspace(@PathVariable Long workspaceId, @RequestBody UpdateWorkspaceDTO updateWorkspaceDTO) {
-        GetWorkspaceDTO body = workspaceService.updateWorkspace(workspaceId, updateWorkspaceDTO);
-        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    public ResponseEntity<ResponseMessage<Void>> activateWorkspace(@PathVariable Long workspaceId) {
+        workspaceService.activateWorkspace(workspaceId);
+        return ResponseMessageBuilder.build(HttpStatus.OK);
     }
 
     /**
