@@ -32,13 +32,20 @@ public enum ErrorMessage {
     MISSING_WORKSPACE_NAME("O nome da workspace é obrigatório!"),
     INVALID_WORKSPACE_NAME("Esse nome da workspace é inválido! Ele deve ter de 4 a 50 caracteres"),
     UNKNOWN_ERROR("Um erro desconhecido ocorreu, tente novamente em alguns minutos"),
-    INVALID_WORKSPACE_ACCESS("Você não tem permissão para ver essa workspace"),
+    INVALID_WORKSPACE_ACCESS("Você não tem permissão para acessar esse paciente"),
     PAID_USER_ONLY("Apenas usuários pagantes podem fazer isso!"),
     MEMBER_IS_DEACTIVATED("Este usuário foi temporariamente desativado dessa workspace. Contacte o administrador da workspace!"),
     MEMBER_IS_NOT_DEACTIVATED("Você deve desativar o usuário antes de fazer isso!"),
     INVALID_RG("O RG fornecido está inválido!"),
     PATIENT_ALREADY_REGISTERED("Um paciente já está cadastrado com esse RG!"),
-    PATIENT_NOT_FOUND("O paciente não foi encontrado!");
+    PATIENT_NOT_FOUND("O paciente não foi encontrado!"),
+    MISSING_PATIENT_NAME("O nome do paciente é obrigatório!"),
+    MISSING_PATIENT_RG("O RG do paciente é obrigatório!"),
+    MISSING_PATIENT_CONTACT_PHONE("O telefone de contato do paciente é obrigatório!"),
+    INVALID_PHONE("O telefone informado está inválido!"),
+    INVALID_GENDER("O gênero do paciente deve ser informado"),
+    MISSING_PATIENT_DATE_OF_BIRTH("A data de nascimento do paciente deve ser informada"),
+    MISSING_PATIENT_SURNAME("O sobrenome do paciente é obrigatório!");
 
     private final String message;
 

@@ -5,15 +5,12 @@ import andre.chamis.healthproject.domain.exception.ValidationException;
 import andre.chamis.healthproject.domain.patient.dto.CreatePatientDTO;
 import andre.chamis.healthproject.domain.patient.dto.GetPatientDTO;
 import andre.chamis.healthproject.domain.patient.dto.UpdatePatientDTO;
-import andre.chamis.healthproject.domain.patient.model.Gender;
 import andre.chamis.healthproject.domain.patient.model.Patient;
 import andre.chamis.healthproject.domain.patient.repository.PatientRepository;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
-import java.util.Date;
 import java.util.Optional;
 
 // TODO começar a implementar documentos (também vou precisar adicionar fotos aos enfermeiros)
@@ -62,26 +59,17 @@ public class PatientService {
      * @throws BadArgumentException if the patient already exists or if the RG (Registro Geral) is invalid
      */
     public Patient createPatient(CreatePatientDTO createPatientDTO) {
-        // TODO need to validate the fields
-        Patient patient = new Patient();
-        patient.setName(createPatientDTO.name());
-        patient.setSurname(createPatientDTO.surname());
-        patient.setGender(createPatientDTO.gender());
-        patient.setDateOfBirth(createPatientDTO.dateOfBirth());
-        patient.setContactPhone(createPatientDTO.contactPhone());
-        patient.setCreateDt(Date.from(Instant.now()));
-
         try {
-            patient.setDocument(createPatientDTO.document());
+            Patient patient = new Patient(createPatientDTO);
+
+            if (patientRepository.existsByDocument(createPatientDTO.document())) {
+                throw new BadArgumentException(ErrorMessage.PATIENT_ALREADY_REGISTERED);
+            }
+
+            return patientRepository.save(patient);
         } catch (ValidationException e) {
-            throw new BadArgumentException(ErrorMessage.INVALID_RG);
+            throw new BadArgumentException(e.getError());
         }
-
-        if (patientRepository.existsByDocument(createPatientDTO.document())) {
-            throw new BadArgumentException(ErrorMessage.PATIENT_ALREADY_REGISTERED);
-        }
-
-        return patientRepository.save(patient);
     }
 
     /**
@@ -90,50 +78,21 @@ public class PatientService {
      * @param patientId        the ID of the patient to be updated
      * @param updatePatientDTO the DTO containing the updated patient information
      * @return the updated patient
-     * @throws BadArgumentException if the patient is not found, if the RG (Registro Geral) is invalid
+     * @throws BadArgumentException if the patient is not found, or if any of the non-null fields provided are invalid
      */
     public Patient updatePatient(Long patientId, UpdatePatientDTO updatePatientDTO) {
         Patient patient = fetchPatientByIdOrThrow(patientId);
-        boolean updated = false;
 
-        if (updatePatientDTO.name() != null) {
-            patient.setName(updatePatientDTO.name());
-            updated = true;
-        }
+        try {
+            boolean updated = patient.update(updatePatientDTO);
 
-        if (updatePatientDTO.surname() != null) {
-            patient.setSurname(updatePatientDTO.surname());
-            updated = true;
-        }
-
-        if (updatePatientDTO.document() != null) {
-            try {
-                patient.setDocument(updatePatientDTO.document());
-                updated = true;
-            } catch (ValidationException e) {
-                throw new BadArgumentException(ErrorMessage.PATIENT_ALREADY_REGISTERED);
+            if (updated) {
+                patient = patientRepository.save(patient);
             }
-        }
 
-        if (updatePatientDTO.contactPhone() != null) {
-            patient.setContactPhone(updatePatientDTO.contactPhone());
-            updated = true;
+            return patient;
+        } catch (ValidationException e) {
+            throw new BadArgumentException(e.getError());
         }
-
-        if (updatePatientDTO.dateOfBirth() != null) {
-            patient.setDateOfBirth(updatePatientDTO.dateOfBirth());
-            updated = true;
-        }
-
-        if (!Gender.UNKNOWN.equals(updatePatientDTO.gender())) {
-            patient.setGender(updatePatientDTO.gender());
-            updated = true;
-        }
-
-        if (updated) {
-            patient = patientRepository.save(patient);
-        }
-
-        return patient;
     }
 }

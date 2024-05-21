@@ -3,6 +3,7 @@ package andre.chamis.healthproject.domain.user.repository;
 import andre.chamis.healthproject.domain.user.model.User;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
@@ -13,6 +14,7 @@ import java.util.Optional;
 /**
  * Repository class for managing user entities using both JPA and in-memory caching.
  */
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class UserRepository {
@@ -26,7 +28,9 @@ public class UserRepository {
      */
     @PostConstruct
     public int initializeCache() {
+        log.debug("Initializing cache");
         List<User> users = userJpaRepository.findAll();
+        log.debug("Loaded [{}] users from database", users.size());
         userInMemoryCache.initializeCache(users);
         return userInMemoryCache.getSize();
     }

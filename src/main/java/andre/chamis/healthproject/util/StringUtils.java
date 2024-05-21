@@ -1,9 +1,11 @@
 package andre.chamis.healthproject.util;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.SecureRandom;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Utility class for generating random strings and OTPs.
@@ -13,6 +15,9 @@ public class StringUtils {
     private static final String ALLOWED_NUMBERS = "0123456789";
     private static final String ALLOWED_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private static final String SPECIAL_CHARACTERS = "!@$%&#?";
+
+    @Getter
+    private static final Pattern phoneRegex = Pattern.compile("(\\(\\+?\\d{2}\\)|\\+?\\d{2})\\s?9?\\s?\\d{4}(-?|\\s?)\\d{4}");
 
     /**
      * Generates a random String with the specified length containing numbers and letters.

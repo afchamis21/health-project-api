@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.*;
-
+// TODO alguma coisa quebrou a busca por nome, ta retornando todos (????????????????????)
 /**
  * Data Access Object (DAO) for workspace-related operations with pagination support.
  */
@@ -61,10 +61,9 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
                 FROM workspaces w
                     JOIN workspace_user wu ON w.workspace_id = wu.workspace_id
                     JOIN patients p ON w.patient_id = p.patient_id
-                WHERE wu.user_id = :userId AND wu.is_active = true
-                  AND w.workspace_name ILIKE :name || '%'
-                  AND (w.is_active OR w.owner_id = wu.user_id)
+                WHERE w.owner_id = wu.user_id OR (wu.user_id = :userId AND wu.is_active = true)
                   AND w.create_dt <= :now
+                  AND CONCAT(p.name, COALESCE(' ' || p.surname, '')) ILIKE :name || '%'
                 """;
     }
 
@@ -72,8 +71,9 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
         return """
                 SELECT COUNT(w.workspace_id) FROM workspaces w
                     JOIN workspace_user wu ON w.workspace_id = wu.workspace_id
+                    JOIN patients p ON w.patient_id = p.patient_id
                          WHERE wu.user_id = :userId AND wu.is_active = true
-                         AND w.workspace_name ILIKE :name || '%'
+                         AND CONCAT(p.name, COALESCE(' ' || p.surname, '')) ILIKE :name || '%'
                          AND (w.is_active OR w.owner_id = wu.user_id)
                          AND w.create_dt <= :now
                 """;

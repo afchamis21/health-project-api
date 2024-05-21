@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 
 @Slf4j
@@ -46,14 +48,6 @@ public class WorkspaceService {
         }
 
         log.info("Creating workspace with name [{}] and ownerId [{}]", createPatientDTO.name(), currentUserId);
-
-        if (null == createPatientDTO.name()) {
-            throw new BadArgumentException(ErrorMessage.MISSING_WORKSPACE_NAME);
-        }
-
-        if (createPatientDTO.name().length() < 3 || createPatientDTO.name().length() > 50) {
-            throw new BadArgumentException(ErrorMessage.INVALID_WORKSPACE_NAME);
-        }
 
         Patient patient = patientService.createPatient(createPatientDTO);
 
@@ -180,7 +174,8 @@ public class WorkspaceService {
      */
     public Workspace getWorkspaceAndCheckOwnership(Long workspaceId, boolean activeWorkspaceOnly) {
         Workspace workspace = activeWorkspaceOnly
-                ? getWorkspaceIfActiveOrThrow(workspaceId) : getWorkspaceByIdOrThrow(workspaceId);
+                ? getWorkspaceIfActiveOrThrow(workspaceId)
+                : getWorkspaceByIdOrThrow(workspaceId);
 
         checkWorkspaceOwnershipOrThrow(workspace);
 
@@ -224,5 +219,13 @@ public class WorkspaceService {
         if (!isWorkspaceOwner) {
             throw new ForbiddenException(ErrorMessage.WORKSPACE_OWNERSHIP);
         }
+    }
+
+    public GetWorkspaceDTO getWorkspaceDtoById(Long workspaceId) {
+        Long userId = ServiceContext.getContext().getUserId();
+        List<GetWorkspaceDTO> result = workspaceRepository.getWorkspaceDtoByIdIfOwnerOrMemberAndActive(workspaceId, userId);
+
+        return result.get(0);
+//        return result.orElseThrow(() -> new ForbiddenException(ErrorMessage.INVALID_WORKSPACE_ACCESS));
     }
 }

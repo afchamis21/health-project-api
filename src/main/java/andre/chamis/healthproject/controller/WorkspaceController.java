@@ -36,6 +36,18 @@ public class WorkspaceController {
     private final WorkspaceAttendanceService workspaceAttendanceService;
 
     /**
+     * Finds a workspace by its ID.
+     *
+     * @param workspaceId The ID of the workspace to be found.
+     * @return The workspace
+     */
+    @GetMapping("{workspaceId}")
+    public ResponseEntity<ResponseMessage<GetWorkspaceDTO>> getWorkspaceById(@PathVariable Long workspaceId) {
+        GetWorkspaceDTO body = workspaceService.getWorkspaceDtoById(workspaceId);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
+
+    /**
      * Creates a new workspace.
      *
      * @param createPatientDTO The DTO containing workspace creation information.
