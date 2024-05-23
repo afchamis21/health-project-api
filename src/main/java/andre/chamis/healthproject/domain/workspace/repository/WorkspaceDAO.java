@@ -79,7 +79,6 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
                 """;
     }
 
-    // TODO aqui
     private String getSearchByMemberIdQuery() {
         return """
                 SELECT w.workspace_id, w.owner_id,w.create_dt, w.is_active, w.update_dt, w.patient_id, CONCAT(p.name, COALESCE(' ' || p.surname, '')) AS full_name
