@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.*;
-// TODO alguma coisa quebrou a busca por nome, ta retornando todos (????????????????????)
+
 /**
  * Data Access Object (DAO) for workspace-related operations with pagination support.
  */
@@ -57,28 +57,29 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
 
     private String getSearchByWorkspaceNameAndMemberIdQuery() {
         return """
-                SELECT w.workspace_id, w.owner_id,w.create_dt, w.is_active, w.update_dt, w.patient_id, CONCAT(p.name, COALESCE(' ' || p.surname, '')) AS full_name
+                SELECT w.workspace_id, w.owner_id, w.create_dt, w.is_active, w.update_dt, w.patient_id, CONCAT(p.name, COALESCE(' ' || p.surname, '')) AS full_name
                 FROM workspaces w
                     JOIN workspace_user wu ON w.workspace_id = wu.workspace_id
                     JOIN patients p ON w.patient_id = p.patient_id
-                WHERE w.owner_id = wu.user_id OR (wu.user_id = :userId AND wu.is_active = true)
+                WHERE (w.owner_id = :userId OR (wu.user_id = :userId AND wu.is_active = true))
                   AND w.create_dt <= :now
                   AND CONCAT(p.name, COALESCE(' ' || p.surname, '')) ILIKE :name || '%'
                 """;
     }
 
-    protected String getCountByWorkspaceNameAndMemberIdQuery() {
+    private String getCountByWorkspaceNameAndMemberIdQuery() {
         return """
-                SELECT COUNT(w.workspace_id) FROM workspaces w
+                SELECT COUNT(w.workspace_id)
+                FROM workspaces w
                     JOIN workspace_user wu ON w.workspace_id = wu.workspace_id
                     JOIN patients p ON w.patient_id = p.patient_id
-                         WHERE wu.user_id = :userId AND wu.is_active = true
-                         AND CONCAT(p.name, COALESCE(' ' || p.surname, '')) ILIKE :name || '%'
-                         AND (w.is_active OR w.owner_id = wu.user_id)
-                         AND w.create_dt <= :now
+                WHERE (w.owner_id = :userId OR (wu.user_id = :userId AND wu.is_active = true))
+                  AND CONCAT(p.name, COALESCE(' ' || p.surname, '')) ILIKE :name || '%'
+                  AND w.create_dt <= :now
                 """;
     }
 
+    // TODO aqui
     private String getSearchByMemberIdQuery() {
         return """
                 SELECT w.workspace_id, w.owner_id,w.create_dt, w.is_active, w.update_dt, w.patient_id, CONCAT(p.name, COALESCE(' ' || p.surname, '')) AS full_name
@@ -90,7 +91,7 @@ class WorkspaceDAO extends PaginatedDAO<GetWorkspaceDTO> {
                 """;
     }
 
-    protected String getCountByMemberIdQuery() {
+    private String getCountByMemberIdQuery() {
         return """
                 SELECT COUNT(w.workspace_id) FROM workspaces w
                     JOIN workspace_user wu ON w.workspace_id = wu.workspace_id

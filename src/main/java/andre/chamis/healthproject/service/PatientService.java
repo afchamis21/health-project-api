@@ -62,10 +62,6 @@ public class PatientService {
         try {
             Patient patient = new Patient(createPatientDTO);
 
-            if (patientRepository.existsByDocument(createPatientDTO.document())) {
-                throw new BadArgumentException(ErrorMessage.PATIENT_ALREADY_REGISTERED);
-            }
-
             return patientRepository.save(patient);
         } catch (ValidationException e) {
             throw new BadArgumentException(e.getError());

@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -79,7 +78,7 @@ public class WorkspaceRepository {
         return jpaRepository.existsWorkspaceByWorkspaceIdAndOwnerId(workspaceId, ownerId);
     }
 
-    public List<GetWorkspaceDTO> getWorkspaceDtoByIdIfOwnerOrMemberAndActive(Long workspaceId, Long userId) {
+    public Optional<GetWorkspaceDTO> getWorkspaceDtoByIdIfOwnerOrMemberAndActive(Long workspaceId, Long userId) {
         return jpaRepository.getWorkspaceDtoByIdIfOwnerOrMemberAndActive(workspaceId, userId);
     }
 }

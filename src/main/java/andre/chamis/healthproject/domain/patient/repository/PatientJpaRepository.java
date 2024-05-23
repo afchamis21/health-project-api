@@ -9,12 +9,4 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 interface PatientJpaRepository extends JpaRepository<Patient, Long> {
-
-    /**
-     * Checks if a patient exists with the given document.
-     *
-     * @param document the document to check
-     * @return true if a patient exists with the given document, false otherwise
-     */
-    boolean existsByDocument(String document);
 }

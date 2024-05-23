@@ -37,7 +37,6 @@ public class Patient {
     /**
      * The document identifier, typically the RG (Registro Geral).
      */
-    @Column(unique = true)
     private String document;
 
     @Column(name = "date_of_birth")
@@ -82,7 +81,7 @@ public class Patient {
         // Calculate the verification digit
         int sum = 0;
         for (int i = 0; i < 8; i++) {
-            int digit = Character.getNumericValue(document.charAt(i));
+            int digit = Character.getNumericValue(charsOnlyDocument.charAt(i));
             sum += digit * (i + 1);
         }
 
@@ -91,8 +90,8 @@ public class Patient {
 
         // Check the last digit of the RG
         if (Integer.toString(verificationDigit).equals(Character.toString(lastDigit))
-                || (verificationDigit == 10 && lastDigit == 'X')
-                || (verificationDigit == 11 && lastDigit == '0')) {
+            || (verificationDigit == 10 && lastDigit == 'X')
+            || (verificationDigit == 11 && lastDigit == '0')) {
             return;
         }
 
@@ -135,7 +134,7 @@ public class Patient {
     }
 
     private void validateGender(Gender gender) throws ValidationException {
-        if (gender == null || gender.equals(Gender.UNKNOWN)){
+        if (gender == null || gender.equals(Gender.UNKNOWN)) {
             throw new ValidationException(ErrorMessage.INVALID_GENDER);
         }
     }

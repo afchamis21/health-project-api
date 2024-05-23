@@ -28,16 +28,6 @@ public class PatientRepository {
     }
 
     /**
-     * Checks if a patient exists with the given document.
-     *
-     * @param document the document to check
-     * @return true if a patient exists with the given document, false otherwise
-     */
-    public boolean existsByDocument(String document) {
-        return jpaRepository.existsByDocument(document);
-    }
-
-    /**
      * Finds a patient by their ID.
      *
      * @param patientId the ID of the patient

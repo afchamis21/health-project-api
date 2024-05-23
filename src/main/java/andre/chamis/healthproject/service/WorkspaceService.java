@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 
@@ -223,9 +222,8 @@ public class WorkspaceService {
 
     public GetWorkspaceDTO getWorkspaceDtoById(Long workspaceId) {
         Long userId = ServiceContext.getContext().getUserId();
-        List<GetWorkspaceDTO> result = workspaceRepository.getWorkspaceDtoByIdIfOwnerOrMemberAndActive(workspaceId, userId);
+        Optional<GetWorkspaceDTO> result = workspaceRepository.getWorkspaceDtoByIdIfOwnerOrMemberAndActive(workspaceId, userId);
 
-        return result.get(0);
-//        return result.orElseThrow(() -> new ForbiddenException(ErrorMessage.INVALID_WORKSPACE_ACCESS));
+        return result.orElseThrow(() -> new ForbiddenException(ErrorMessage.INVALID_WORKSPACE_ACCESS));
     }
 }
