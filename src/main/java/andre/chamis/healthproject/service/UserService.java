@@ -1,8 +1,11 @@
 package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.context.ServiceContext;
+import andre.chamis.healthproject.domain.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.exception.BadArgumentException;
 import andre.chamis.healthproject.domain.exception.ForbiddenException;
+import andre.chamis.healthproject.domain.patient.dto.CreatePatientDTO;
+import andre.chamis.healthproject.domain.patient.dto.GetPatientSummaryDTO;
 import andre.chamis.healthproject.domain.payment.dto.GetIsUserSubscriberResponse;
 import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
@@ -10,8 +13,6 @@ import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.*;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.domain.user.repository.UserRepository;
-import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
-import andre.chamis.healthproject.domain.workspace.repository.WorkspaceRepository;
 import andre.chamis.healthproject.util.DateUtils;
 import andre.chamis.healthproject.util.ObjectUtils;
 import andre.chamis.healthproject.util.StringUtils;
@@ -39,9 +40,11 @@ public class UserService {
     private final EmailService emailService;
     private final UserRepository userRepository;
     private final SessionService sessionService;
-    private final WorkspaceRepository workspaceRepository;
+    private final PatientService patientService;
     private final RefreshTokenService refreshTokenService;
     private final UserSubscriptionService subscriptionService;
+    private final AttendanceService attendanceService;
+    private final CollaboratorService collaboratorService;
 
     private final int OTP_LENGTH = 6;
     private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
@@ -608,21 +611,24 @@ public class UserService {
                 : Optional.empty();
     }
 
-    /**
-     * Searches all workspaces user belongs to, filtering by name, if name is provided
-     *
-     * @param name           The name of the workspace.
-     * @param paginationInfo Information about pagination.
-     * @return A paginated response containing the matching workspaces.
-     */
-    public PaginatedResponse<GetWorkspaceDTO> searchWorkspacesByNameAndMemberId(String name, PaginationInfo paginationInfo) {
+    public GetPatientSummaryDTO addPatient(CreatePatientDTO createPatientDTO) {
+        User user = findCurrentUser();
+
+        if (!user.isPaymentActive()) {
+            throw new ForbiddenException(ErrorMessage.PAID_USER_ONLY);
+        }
+
+        return patientService.createPatient(createPatientDTO);
+    }
+
+    public PaginatedResponse<GetPatientSummaryDTO> searchPatientByNameAndCollaboratorId(String name, PaginationInfo paginationInfo) {
         Long currentUserId = ServiceContext.getContext().getUserId();
 
         if (name == null || name.isBlank()) {
-            return workspaceRepository.findWorkspacesByMemberId(currentUserId, paginationInfo);
+            return patientService.findPatientsByCollaboratorId(currentUserId, paginationInfo);
         }
 
-        return workspaceRepository.searchWorkspacesByNameAndMemberId(ServiceContext.getContext().getUserId(), name, paginationInfo);
+        return patientService.searchPatientsByNameAndCollaboratorId(ServiceContext.getContext().getUserId(), name, paginationInfo);
     }
 
     /**
@@ -635,44 +641,40 @@ public class UserService {
         return userRepository.findUserByEmail(email);
     }
 
-    /**
-     * Checks if a user is currently clocked in.
-     *
-     * @param userId The ID of the user.
-     * @return {@code true} if the user is clocked in, otherwise {@code false}.
-     */
-    public boolean checkIsClockedIn(Long userId) {
-        User user = getUserById(userId);
+    public GetAttendanceDTO clockIn(Long patientId) {
+        boolean isUserCollaboratorOfPatient = collaboratorService.isUserActiveCollaboratorOfPatient(
+                patientId,
+                ServiceContext.getContext().getUserId()
+        );
 
-        return null != user.getClockedIn() && user.getClockedIn();
-    }
+        if (!isUserCollaboratorOfPatient) {
+            throw new ForbiddenException(ErrorMessage.INVALID_PATIENT_ACCESS);
+        }
 
-    /**
-     * Records a user as clocked in to a workspace.
-     *
-     * @param userId      The ID of the user.
-     * @param workspaceId The ID of the workspace.
-     */
-    public void clockIn(Long userId, Long workspaceId) {
-        User user = getUserById(userId);
+        User user = findCurrentUser();
+
+        log.info("Clocking in user at [{}]", patientId);
+
+        if (user.getClockedIn()) {
+            attendanceService.clockOut(user.getUserId());
+        }
 
         user.setClockedIn(true);
-        user.setClockedInAt(workspaceId);
+        user.setClockedInAt(patientId);
 
         userRepository.save(user);
+
+        return attendanceService.clockIn(patientId, user.getUserId());
     }
 
-    /**
-     * Records a user as clocked out.
-     *
-     * @param userId The ID of the user.
-     */
-    public void clockOut(Long userId) {
-        User user = getUserById(userId);
+    public List<GetAttendanceDTO> clockOut() {
+        User user = findCurrentUser();
 
         user.setClockedIn(false);
         user.setClockedInAt(null);
 
         userRepository.save(user);
+
+        return attendanceService.clockOut(user.getUserId());
     }
 }

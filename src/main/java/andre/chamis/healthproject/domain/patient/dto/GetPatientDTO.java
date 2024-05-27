@@ -18,7 +18,7 @@ public record GetPatientDTO(Long patientId,
                 patient.getPatientId(),
                 patient.getName(),
                 patient.getSurname(),
-                patient.getDocument(),
+                patient.getRg(),
                 patient.getContactPhone(),
                 patient.getGender(),
                 patient.getDateOfBirth()

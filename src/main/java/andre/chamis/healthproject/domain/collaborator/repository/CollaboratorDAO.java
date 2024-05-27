@@ -1,11 +1,11 @@
-package andre.chamis.healthproject.domain.workspace.member.repository;
+package andre.chamis.healthproject.domain.collaborator.repository;
 
 import andre.chamis.healthproject.dao.PaginatedDAO;
+import andre.chamis.healthproject.domain.collaborator.dto.GetCollaboratorDTO;
 import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
-import andre.chamis.healthproject.domain.workspace.member.dto.GetWorkspaceMemberDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -16,29 +16,21 @@ import java.time.Instant;
 import java.util.*;
 
 /**
- * Data Access Object (DAO) for workspace member-related operations with pagination support.
+ * Data Access Object (DAO) for collaborator-related operations with pagination support.
  */
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
+class CollaboratorDAO extends PaginatedDAO<GetCollaboratorDTO> {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-
-    /**
-     * Retrieves all members of a workspace.
-     *
-     * @param workspaceId    The ID of the workspace.
-     * @param paginationInfo The pagination information.
-     * @return A paginated response containing the members of the workspace.
-     */
-    public PaginatedResponse<GetWorkspaceMemberDTO> getAllMembersByWorkspaceId(Long workspaceId, PaginationInfo paginationInfo) {
+    public PaginatedResponse<GetCollaboratorDTO> getAllCollaboratorsByPatientId(Long patientId, PaginationInfo paginationInfo) {
         Date now = Date.from(Instant.now());
         Map<String, Object> params = new HashMap<>();
-        params.put("workspaceId", workspaceId);
+        params.put("patientId", patientId);
         params.put("now", now);
 
-        return super.execute(params, paginationInfo, getSelectMembersByWorkspaceIdQuery(), getCountMembersByWorkspaceIdQuery());
+        return super.execute(params, paginationInfo, getSelectCollaboratorsByPatientIdQuery(), getCountCollaboratorsByPatientIdQuery());
     }
 
     @Override
@@ -48,47 +40,37 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
 
     @Override
     protected String getSortColumnName() {
-        return "wu.create_dt";
+        return "p.create_dt";
     }
 
-    /**
-     * Retrieves the SQL query for selecting members by workspace ID.
-     *
-     * @return The SQL query for selecting members by workspace ID.
-     */
-    protected String getSelectMembersByWorkspaceIdQuery() {
+    protected String getSelectCollaboratorsByPatientIdQuery() {
         return """
-                SELECT wu.is_active as is_member_active, wu.workspace_id as workspace_id,
-                wu.create_dt as member_create_dt, u.user_id, u.email, u.username,
+                SELECT p.is_active as is_collaborator_active, p.patient_id as patient_id,
+                p.create_dt as collaborator_create_dt, u.user_id, u.email, u.username,
                 u.is_registration_complete, u.is_payment_active, u.stripe_client_id, u.is_clocked_in, u.clocked_in_at
                 FROM users u
-                    JOIN workspace_user wu ON wu.user_id = u.user_id
-                    WHERE wu.workspace_id = :workspaceId
+                    JOIN collaborators c ON c.user_id = u.user_id
+                    WHERE c.patientId = :patientId
                         AND wu.create_dt <= :now
                     ORDER BY wu.is_active DESC
                 """;
     }
 
-    /**
-     * Retrieves the SQL query for counting members by workspace ID.
-     *
-     * @return The SQL query for counting members by workspace ID.
-     */
-    protected String getCountMembersByWorkspaceIdQuery() {
+    protected String getCountCollaboratorsByPatientIdQuery() {
         return """
-                SELECT COUNT(user_id) FROM workspace_user WHERE workspace_id = :workspaceId AND create_dt <= :now
+                SELECT COUNT(user_id) FROM patients WHERE patient_id = :patientId AND create_dt <= :now
                 """;
     }
 
     @Override
-    protected ResultSetExtractor<List<GetWorkspaceMemberDTO>> getListResultSetExtractor() {
+    protected ResultSetExtractor<List<GetCollaboratorDTO>> getListResultSetExtractor() {
         return (rs) -> {
-            List<GetWorkspaceMemberDTO> results = new ArrayList<>();
+            List<GetCollaboratorDTO> results = new ArrayList<>();
             while (rs.next()) {
-                results.add(new GetWorkspaceMemberDTO(
-                        rs.getLong("workspace_id"),
-                        rs.getBoolean("is_member_active"),
-                        rs.getTimestamp("member_create_dt"),
+                results.add(new GetCollaboratorDTO(
+                        rs.getLong("patient_id"),
+                        rs.getBoolean("is_collaborator_active"),
+                        rs.getTimestamp("collaborator_create_dt"),
                         new GetUserDTO(
                                 rs.getLong("user_id"),
                                 rs.getString("username"),
@@ -105,17 +87,17 @@ class WorkspaceMemberDAO extends PaginatedDAO<GetWorkspaceMemberDTO> {
         };
     }
 
-    public List<GetUsernameAndIdDTO> getAllMemberNamesByWorkspaceId(Long workspaceId) {
+    public List<GetUsernameAndIdDTO> getAllCollaboratorNamesByPatientId(Long patientId) {
         String query = """
                 SELECT u.username, u.user_id
-                FROM workspace_user wu
+                FROM collaborator c
                     JOIN users u ON wu.user_id = u.user_id
-                    JOIN workspaces w ON wu.workspace_id = w.workspace_id
-                    WHERE wu.workspace_id = :workspaceId AND u.user_id != w.owner_id;
+                    JOIN patients p ON wu.patient_id = p.patient_id
+                    WHERE wu.patient_id = :patientId AND u.user_id != p.owner_id;
                 """;
 
         Map<String, Object> params = new HashMap<>();
-        params.put("workspaceId", workspaceId);
+        params.put("patientId", patientId);
 
         return jdbcTemplate.query(query, params, (rs) -> {
             List<GetUsernameAndIdDTO> results = new ArrayList<>();

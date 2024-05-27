@@ -31,13 +31,13 @@ public class Patient {
     @Column(name = "contact_phone")
     private String contactPhone;
 
+    @Column(name = "owner_id")
+    private Long ownerId;
+
     @Enumerated(EnumType.ORDINAL)
     private Gender gender;
 
-    /**
-     * The document identifier, typically the RG (Registro Geral).
-     */
-    private String document;
+    private String rg;
 
     @Column(name = "date_of_birth")
     private Date dateOfBirth;
@@ -48,20 +48,25 @@ public class Patient {
     @Column(name = "update_dt")
     private Date updateDt;
 
-    public Patient(CreatePatientDTO createPatientDTO) throws ValidationException {
+    @Column(name = "is_active")
+    private boolean active;
+
+    public Patient(CreatePatientDTO createPatientDTO, Long ownerId) throws ValidationException {
         setName(createPatientDTO.name());
         setSurname(createPatientDTO.surname());
-        setDocument(createPatientDTO.document());
+        setRg(createPatientDTO.document());
         setGender(createPatientDTO.gender());
         setDateOfBirth(createPatientDTO.dateOfBirth());
         setContactPhone(createPatientDTO.contactPhone());
         setCreateDt(Date.from(Instant.now()));
+        setOwnerId(ownerId);
+        setActive(true);
     }
 
-    public void setDocument(String document) throws ValidationException {
+    public void setRg(String document) throws ValidationException {
         validateDocument(document);
 
-        this.document = document;
+        this.rg = document;
     }
 
     private void validateDocument(String document) throws ValidationException {
@@ -90,8 +95,8 @@ public class Patient {
 
         // Check the last digit of the RG
         if (Integer.toString(verificationDigit).equals(Character.toString(lastDigit))
-            || (verificationDigit == 10 && lastDigit == 'X')
-            || (verificationDigit == 11 && lastDigit == '0')) {
+                || (verificationDigit == 10 && lastDigit == 'X')
+                || (verificationDigit == 11 && lastDigit == '0')) {
             return;
         }
 
@@ -174,7 +179,7 @@ public class Patient {
         }
 
         if (updatePatientDTO.document() != null) {
-            setDocument(updatePatientDTO.document());
+            setRg(updatePatientDTO.document());
             updated = true;
         }
 

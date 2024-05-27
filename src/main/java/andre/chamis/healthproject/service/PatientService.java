@@ -1,24 +1,41 @@
 package andre.chamis.healthproject.service;
 
+import andre.chamis.healthproject.context.ServiceContext;
+import andre.chamis.healthproject.domain.attendance.dto.GetAttendanceWithUsernameDTO;
+import andre.chamis.healthproject.domain.collaborator.dto.CreateCollaboratorDTO;
+import andre.chamis.healthproject.domain.collaborator.dto.GetCollaboratorDTO;
+import andre.chamis.healthproject.domain.collaborator.model.Collaborator;
+import andre.chamis.healthproject.domain.collaborator.repository.CollaboratorRepository;
 import andre.chamis.healthproject.domain.exception.BadArgumentException;
+import andre.chamis.healthproject.domain.exception.ForbiddenException;
 import andre.chamis.healthproject.domain.exception.ValidationException;
 import andre.chamis.healthproject.domain.patient.dto.CreatePatientDTO;
 import andre.chamis.healthproject.domain.patient.dto.GetPatientDTO;
+import andre.chamis.healthproject.domain.patient.dto.GetPatientSummaryDTO;
 import andre.chamis.healthproject.domain.patient.dto.UpdatePatientDTO;
 import andre.chamis.healthproject.domain.patient.model.Patient;
 import andre.chamis.healthproject.domain.patient.repository.PatientRepository;
+import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.ErrorMessage;
+import andre.chamis.healthproject.domain.response.PaginatedResponse;
+import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 // TODO começar a implementar documentos (também vou precisar adicionar fotos aos enfermeiros)
 
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class PatientService {
     private final PatientRepository patientRepository;
+    private final CollaboratorRepository collaboratorRepository;
+    private final AttendanceService attendanceService;
+    private final CollaboratorService collaboratorService;
 
     /**
      * Retrieves a patient by their ID.
@@ -58,11 +75,22 @@ public class PatientService {
      * @return the newly created patient
      * @throws BadArgumentException if the patient already exists or if the RG (Registro Geral) is invalid
      */
-    public Patient createPatient(CreatePatientDTO createPatientDTO) {
+    protected GetPatientSummaryDTO createPatient(CreatePatientDTO createPatientDTO) {
         try {
-            Patient patient = new Patient(createPatientDTO);
+            Long currentUserId = ServiceContext.getContext().getUserId();
 
-            return patientRepository.save(patient);
+            log.info("Creating patient with name [{} {}] and ownerId [{}]", createPatientDTO.name(), createPatientDTO.surname(), currentUserId);
+
+            Patient patient = new Patient(createPatientDTO, ServiceContext.getContext().getUserId());
+
+            patient = patientRepository.save(patient);
+
+            log.info("Adding owner as collaborator of patient!");
+            Collaborator collaborator = new Collaborator(patient.getPatientId(), currentUserId);
+            collaboratorRepository.save(collaborator);
+            log.info("Owner saved to database");
+
+            return GetPatientSummaryDTO.fromPatient(patient);
         } catch (ValidationException e) {
             throw new BadArgumentException(e.getError());
         }
@@ -90,5 +118,104 @@ public class PatientService {
         } catch (ValidationException e) {
             throw new BadArgumentException(e.getError());
         }
+    }
+
+    public void deletePatient(Long patientId) {
+        log.info("Preparing to delete patient [{}]", patientId);
+        Patient patient = patientRepository.getIfOwnerOrThrow(patientId, false);
+
+        if (patient.isActive()) {
+            log.warn("Patient [{}] is deactivated!", patient);
+            throw new ForbiddenException(ErrorMessage.CAN_NOT_DELETE_ACTIVE_PATIENT);
+        }
+
+        patientRepository.deleteByPatientId(patientId);
+        log.info("Patient [{}] permanently deleted!", patientId);
+
+        long deletedUsers = collaboratorRepository.deleteAllByPatientId(patientId);
+        log.info("Deleted all ({}) collaborators of patient [{}]", deletedUsers, patientId);
+    }
+
+    public void activePatient(Long patientId) {
+        Patient patient = patientRepository.getIfOwnerOrThrow(patientId, false);
+
+        log.info("Activating patient [{}]", patientId);
+        patient.setActive(true);
+
+        patientRepository.save(patient);
+    }
+
+    public void deactivatePatient(Long patientId) {
+        Patient patient = patientRepository.getIfOwnerOrThrow(patientId, false);
+
+        log.info("Deactivating patient [{}]", patientId);
+        patient.setActive(false);
+
+        patientRepository.save(patient);
+    }
+
+    public void checkPatientOwnershipOrThrow(Long patientId) {
+        Long currentUserId = ServiceContext.getContext().getUserId();
+        boolean isPatientOwner = patientRepository.existsByPatientIdAndOwnerId(patientId, currentUserId);
+
+        if (!isPatientOwner) {
+            throw new ForbiddenException(ErrorMessage.PATIENT_OWNERSHIP);
+        }
+    }
+
+    public GetPatientSummaryDTO getPatientSummaryDTOById(Long patientId) {
+        Long userId = ServiceContext.getContext().getUserId();
+        Optional<GetPatientSummaryDTO> result = patientRepository.getPatientSummaryByIdIfOwnerOrCollaboratorAndActive(
+                patientId, userId
+        );
+
+        return result.orElseThrow(() -> new ForbiddenException(ErrorMessage.INVALID_PATIENT_ACCESS));
+    }
+
+    public PaginatedResponse<GetAttendanceWithUsernameDTO> getAttendances(
+            Long patientId, Optional<Long> userId, PaginationInfo paginationInfo
+    ) {
+        checkPatientOwnershipOrThrow(patientId);
+
+        return attendanceService.getAttendances(patientId, userId, paginationInfo);
+    }
+
+    public PaginatedResponse<GetCollaboratorDTO> getCollaborators(Long patientId, PaginationInfo paginationInfo) {
+        checkPatientOwnershipOrThrow(patientId);
+
+        return collaboratorService.getAllCollaboratorsOfPatient(patientId, paginationInfo);
+    }
+
+    public List<GetUsernameAndIdDTO> getAllCollaboratorNames(Long patientId) {
+        checkPatientOwnershipOrThrow(patientId);
+
+        return collaboratorService.getAllCollaboratorNamesOfPatient(patientId);
+    }
+
+    public GetCollaboratorDTO addCollaborator(Long patientId, CreateCollaboratorDTO createCollaboratorDTO) {
+        checkPatientOwnershipOrThrow(patientId);
+
+        return collaboratorService.addCollaboratorToPatient(patientId, createCollaboratorDTO);
+    }
+
+    public void activateCollaborator(Long patientId, Long userId) {
+        checkPatientOwnershipOrThrow(patientId);
+
+        collaboratorService.activateCollaborator(patientId, userId);
+
+    }
+
+    public void deactivateCollaborator(Long patientId, Long userId) {
+        checkPatientOwnershipOrThrow(patientId);
+
+        collaboratorService.deactivateCollaborator(patientId, userId);
+    }
+
+    protected PaginatedResponse<GetPatientSummaryDTO> findPatientsByCollaboratorId(Long collaboratorId, PaginationInfo paginationInfo) {
+        return patientRepository.findPatientsByCollaboratorId(collaboratorId, paginationInfo);
+    }
+
+    public PaginatedResponse<GetPatientSummaryDTO> searchPatientsByNameAndCollaboratorId(Long collaboratorId, String name, PaginationInfo paginationInfo) {
+        return patientRepository.searchPatientsByNameAndCollaboratorId(collaboratorId, name, paginationInfo);
     }
 }

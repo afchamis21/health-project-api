@@ -1,9 +1,9 @@
-package andre.chamis.healthproject.domain.workspace.attendance.repository;
+package andre.chamis.healthproject.domain.attendance.repository;
 
 import andre.chamis.healthproject.dao.PaginatedDAO;
+import andre.chamis.healthproject.domain.attendance.dto.GetAttendanceWithUsernameDTO;
 import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
-import andre.chamis.healthproject.domain.workspace.attendance.dto.GetAttendanceWithUsernameDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -14,61 +14,61 @@ import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
-public class WorkspaceAttendanceDAO extends PaginatedDAO<GetAttendanceWithUsernameDTO> {
+public class AttendanceDAO extends PaginatedDAO<GetAttendanceWithUsernameDTO> {
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public PaginatedResponse<GetAttendanceWithUsernameDTO> searchAllByWorkspaceId(Long workspaceId, PaginationInfo paginationInfo) {
+    public PaginatedResponse<GetAttendanceWithUsernameDTO> searchAllByPatientId(Long patientId, PaginationInfo paginationInfo) {
         Date now = Date.from(Instant.now());
         Map<String, Object> params = new HashMap<>();
-        params.put("workspaceId", workspaceId);
+        params.put("patientId", patientId);
         params.put("now", now);
 
-        return super.execute(params, paginationInfo, selectAllByWorkspaceIdQuery(), selectCountByWorkspaceIdQuery());
+        return super.execute(params, paginationInfo, selectAllByPatientIdQuery(), selectCountByPatientIdQuery());
     }
 
-    public PaginatedResponse<GetAttendanceWithUsernameDTO> searchAllByWorkspaceIdAndUsername(Long workspaceId, Long userId, PaginationInfo paginationInfo) {
+    public PaginatedResponse<GetAttendanceWithUsernameDTO> searchAllBysearchAllByPatientIdAndUsername(Long patientId, Long userId, PaginationInfo paginationInfo) {
         Date now = Date.from(Instant.now());
         Map<String, Object> params = new HashMap<>();
-        params.put("workspaceId", workspaceId);
+        params.put("patientId", patientId);
         params.put("userId", userId);
         params.put("now", now);
 
-        return super.execute(params, paginationInfo, selectAllByWorkspaceIdAndUsernameQuery(), selectCountByWorkspaceIdAndUsernameQuery());
+        return super.execute(params, paginationInfo, selectAllByPatientIdAndUsernameQuery(), selectCountByPatientIdAndUsernameQuery());
     }
 
-    private String selectAllByWorkspaceIdQuery() {
+    private String selectAllByPatientIdQuery() {
         return """
-                SELECT wa.*, u.username FROM workspace_attendance wa
+                SELECT wa.*, u.username FROM attendance wa
                     JOIN users u ON wa.user_id = u.user_id
-                WHERE wa.workspace_id = :workspaceId
+                WHERE wa.patient_id = :patientId
                     AND wa.clock_in_time <= :now
                     ORDER BY wa.clock_in_time DESC
                 """;
     }
 
-    private String selectCountByWorkspaceIdQuery() {
+    private String selectCountByPatientIdQuery() {
         return """
-                SELECT COUNT(id) FROM workspace_attendance wa JOIN users u ON wa.user_id = u.user_id
-                WHERE wa.workspace_id = :workspaceId
+                SELECT COUNT(id) FROM attendance wa JOIN users u ON wa.user_id = u.user_id
+                WHERE wa.patient_id = :patientId
                     AND wa.clock_in_time <= :now
                 """;
     }
 
-    private String selectAllByWorkspaceIdAndUsernameQuery() {
+    private String selectAllByPatientIdAndUsernameQuery() {
         return """
-                SELECT wa.*, u.username FROM workspace_attendance wa
+                SELECT wa.*, u.username FROM attendance wa
                     JOIN users u ON wa.user_id = u.user_id
-                WHERE wa.workspace_id = :workspaceId
+                WHERE wa.patient_id = :patientId
                     AND u.user_id = :userId
                     AND wa.clock_in_time <= :now
                     ORDER BY wa.clock_in_time DESC
                 """;
     }
 
-    private String selectCountByWorkspaceIdAndUsernameQuery() {
+    private String selectCountByPatientIdAndUsernameQuery() {
         return """
-                SELECT COUNT(id) FROM workspace_attendance wa JOIN users u ON wa.user_id = u.user_id
-                WHERE wa.workspace_id = :workspaceId
+                SELECT COUNT(id) FROM attendance wa JOIN users u ON wa.user_id = u.user_id
+                WHERE wa.patient_id = :patientId
                     AND u.user_id = :userId
                     AND wa.clock_in_time <= :now
                 """;
@@ -90,7 +90,7 @@ public class WorkspaceAttendanceDAO extends PaginatedDAO<GetAttendanceWithUserna
             List<GetAttendanceWithUsernameDTO> results = new ArrayList<>();
             while (rs.next()) {
                 results.add(new GetAttendanceWithUsernameDTO(
-                        rs.getLong("workspace_id"),
+                        rs.getLong("patient_id"),
                         rs.getLong("user_id"),
                         rs.getTimestamp("clock_in_time"),
                         rs.getTimestamp("clock_out_time"),

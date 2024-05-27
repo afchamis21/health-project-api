@@ -1,7 +1,10 @@
 package andre.chamis.healthproject.controller;
 
+import andre.chamis.healthproject.domain.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.auth.annotation.ClientAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
+import andre.chamis.healthproject.domain.patient.dto.CreatePatientDTO;
+import andre.chamis.healthproject.domain.patient.dto.GetPatientSummaryDTO;
 import andre.chamis.healthproject.domain.request.PaginationInfo;
 import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.response.ResponseMessage;
@@ -10,7 +13,6 @@ import andre.chamis.healthproject.domain.user.dto.CompleteRegistrationDTO;
 import andre.chamis.healthproject.domain.user.dto.CreateUserDTO;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.user.dto.UpdateUserDTO;
-import andre.chamis.healthproject.domain.workspace.dto.GetWorkspaceDTO;
 import andre.chamis.healthproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -118,18 +121,37 @@ public class UserController {
     }
 
     /**
-     * Searches user workspaces.
+     * Searches user patients.
      *
      * @param name           The name to search for.
      * @param paginationInfo Information for pagination.
-     * @return A ResponseEntity containing a ResponseMessage with user workspaces information.
+     * @return A ResponseEntity containing a ResponseMessage with user patients information.
      */
-    @GetMapping("workspaces/search")
-    public ResponseEntity<ResponseMessage<PaginatedResponse<GetWorkspaceDTO>>> searchUserWorkspaces(
+    @GetMapping("patient")
+    public ResponseEntity<ResponseMessage<PaginatedResponse<GetPatientSummaryDTO>>> searchUserPatients(
             @RequestParam(required = false, defaultValue = "") String name,
             PaginationInfo paginationInfo
     ) {
-        PaginatedResponse<GetWorkspaceDTO> body = userService.searchWorkspacesByNameAndMemberId(name, paginationInfo);
+        PaginatedResponse<GetPatientSummaryDTO> body = userService.searchPatientByNameAndCollaboratorId(name, paginationInfo);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
+
+    @PostMapping("patient")
+    public ResponseEntity<ResponseMessage<GetPatientSummaryDTO>> createPatient(@RequestBody CreatePatientDTO createPatientDTO) {
+        GetPatientSummaryDTO body = userService.addPatient(createPatientDTO);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
+
+
+    @PostMapping("/clock-in")
+    public ResponseEntity<ResponseMessage<GetAttendanceDTO>> clockIn(@RequestParam Long patientId) {
+        GetAttendanceDTO body = userService.clockIn(patientId);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
+
+    @PostMapping("/clock-out")
+    public ResponseEntity<ResponseMessage<List<GetAttendanceDTO>>> clockOut() {
+        List<GetAttendanceDTO> body = userService.clockOut();
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 }
