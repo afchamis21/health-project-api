@@ -1,10 +1,10 @@
 package andre.chamis.healthproject.service;
 
-import andre.chamis.healthproject.domain.exception.BadArgumentException;
-import andre.chamis.healthproject.domain.response.ErrorMessage;
-import andre.chamis.healthproject.domain.subscription.enums.SubscriptionStatus;
-import andre.chamis.healthproject.domain.subscription.model.UserSubscription;
-import andre.chamis.healthproject.domain.subscription.repository.UserSubscriptionRepository;
+import andre.chamis.healthproject.exception.BadArgumentException;
+import andre.chamis.healthproject.infra.request.response.ErrorMessage;
+import andre.chamis.healthproject.domain.payment.subscription.enums.SubscriptionStatus;
+import andre.chamis.healthproject.domain.payment.subscription.model.UserSubscription;
+import andre.chamis.healthproject.domain.payment.subscription.repository.UserSubscriptionRepository;
 import andre.chamis.healthproject.util.DateUtils;
 import com.stripe.model.Subscription;
 import lombok.RequiredArgsConstructor;

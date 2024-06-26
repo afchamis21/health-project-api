@@ -1,14 +1,16 @@
 package andre.chamis.healthproject.controller;
 
-import andre.chamis.healthproject.domain.attendance.dto.GetAttendanceDTO;
+import andre.chamis.healthproject.domain.health.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.auth.annotation.ClientAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
-import andre.chamis.healthproject.domain.patient.dto.CreatePatientDTO;
-import andre.chamis.healthproject.domain.patient.dto.GetPatientSummaryDTO;
-import andre.chamis.healthproject.domain.request.PaginationInfo;
-import andre.chamis.healthproject.domain.response.PaginatedResponse;
-import andre.chamis.healthproject.domain.response.ResponseMessage;
-import andre.chamis.healthproject.domain.response.ResponseMessageBuilder;
+import andre.chamis.healthproject.domain.health.collaborator.dto.CreateCollaboratorDTO;
+import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
+import andre.chamis.healthproject.domain.health.patient.dto.CreatePatientDTO;
+import andre.chamis.healthproject.domain.health.patient.dto.GetPatientSummaryDTO;
+import andre.chamis.healthproject.infra.request.request.PaginationInfo;
+import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
+import andre.chamis.healthproject.infra.request.response.ResponseMessage;
+import andre.chamis.healthproject.infra.request.response.ResponseMessageBuilder;
 import andre.chamis.healthproject.domain.user.dto.CompleteRegistrationDTO;
 import andre.chamis.healthproject.domain.user.dto.CreateUserDTO;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
@@ -139,6 +141,12 @@ public class UserController {
     @PostMapping("patient")
     public ResponseEntity<ResponseMessage<GetPatientSummaryDTO>> createPatient(@RequestBody CreatePatientDTO createPatientDTO) {
         GetPatientSummaryDTO body = userService.addPatient(createPatientDTO);
+        return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
+
+    @PostMapping("patient/collaborator")
+    public ResponseEntity<ResponseMessage<GetCollaboratorDTO>> addCollaborator(@RequestBody CreateCollaboratorDTO createCollaboratorDTO) {
+        GetCollaboratorDTO body = userService.addCollaboratorToPatient(createCollaboratorDTO);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 

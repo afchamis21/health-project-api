@@ -1,7 +1,7 @@
 package andre.chamis.healthproject.service;
 
-import andre.chamis.healthproject.domain.client.model.Client;
-import andre.chamis.healthproject.domain.client.repository.ClientRepository;
+import andre.chamis.healthproject.domain.auth.client.model.Client;
+import andre.chamis.healthproject.domain.auth.client.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

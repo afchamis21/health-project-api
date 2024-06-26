@@ -1,16 +1,15 @@
 package andre.chamis.healthproject.controller;
 
-import andre.chamis.healthproject.domain.attendance.dto.GetAttendanceWithUsernameDTO;
-import andre.chamis.healthproject.domain.collaborator.dto.CreateCollaboratorDTO;
-import andre.chamis.healthproject.domain.collaborator.dto.GetCollaboratorDTO;
-import andre.chamis.healthproject.domain.patient.dto.GetPatientDTO;
-import andre.chamis.healthproject.domain.patient.dto.GetPatientSummaryDTO;
-import andre.chamis.healthproject.domain.patient.dto.UpdatePatientDTO;
-import andre.chamis.healthproject.domain.patient.model.Patient;
-import andre.chamis.healthproject.domain.request.PaginationInfo;
-import andre.chamis.healthproject.domain.response.PaginatedResponse;
-import andre.chamis.healthproject.domain.response.ResponseMessage;
-import andre.chamis.healthproject.domain.response.ResponseMessageBuilder;
+import andre.chamis.healthproject.domain.health.attendance.dto.GetAttendanceWithUsernameDTO;
+import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
+import andre.chamis.healthproject.domain.health.patient.dto.GetPatientDTO;
+import andre.chamis.healthproject.domain.health.patient.dto.GetPatientSummaryDTO;
+import andre.chamis.healthproject.domain.health.patient.dto.UpdatePatientDTO;
+import andre.chamis.healthproject.domain.health.patient.model.Patient;
+import andre.chamis.healthproject.infra.request.request.PaginationInfo;
+import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
+import andre.chamis.healthproject.infra.request.response.ResponseMessage;
+import andre.chamis.healthproject.infra.request.response.ResponseMessageBuilder;
 import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.service.PatientService;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +64,7 @@ public class PatientController {
         return ResponseMessageBuilder.build(HttpStatus.OK);
     }
 
-    @GetMapping("attendances")
+    @GetMapping("attendance")
     public ResponseEntity<ResponseMessage<PaginatedResponse<GetAttendanceWithUsernameDTO>>> getAttendances(
             @RequestParam Long patientId,
             @RequestParam(required = false) Optional<Long> userId,
@@ -91,14 +90,6 @@ public class PatientController {
         List<GetUsernameAndIdDTO> body = patientService.getAllCollaboratorNames(patientId);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
-
-
-    @PostMapping("collaborators")
-    public ResponseEntity<ResponseMessage<GetCollaboratorDTO>> addCollaborator(@RequestParam Long patientId, @RequestBody CreateCollaboratorDTO createCollaboratorDTO) {
-        GetCollaboratorDTO body = patientService.addCollaborator(patientId, createCollaboratorDTO);
-        return ResponseMessageBuilder.build(body, HttpStatus.OK);
-    }
-
 
     @PatchMapping("collaborators/activate")
     public ResponseEntity<ResponseMessage<Void>> activateCollaborator(@RequestParam Long patientId, @RequestParam Long userId) {

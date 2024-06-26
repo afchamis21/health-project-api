@@ -1,11 +1,11 @@
 package andre.chamis.healthproject.service;
 
-import andre.chamis.healthproject.domain.attendance.dto.GetAttendanceDTO;
-import andre.chamis.healthproject.domain.attendance.dto.GetAttendanceWithUsernameDTO;
-import andre.chamis.healthproject.domain.attendance.model.Attendance;
-import andre.chamis.healthproject.domain.attendance.repository.AttendanceRepository;
-import andre.chamis.healthproject.domain.request.PaginationInfo;
-import andre.chamis.healthproject.domain.response.PaginatedResponse;
+import andre.chamis.healthproject.domain.health.attendance.dto.GetAttendanceDTO;
+import andre.chamis.healthproject.domain.health.attendance.dto.GetAttendanceWithUsernameDTO;
+import andre.chamis.healthproject.domain.health.attendance.model.Attendance;
+import andre.chamis.healthproject.domain.health.attendance.repository.AttendanceRepository;
+import andre.chamis.healthproject.infra.request.request.PaginationInfo;
+import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

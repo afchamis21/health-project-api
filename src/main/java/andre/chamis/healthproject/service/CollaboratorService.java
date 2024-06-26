@@ -1,13 +1,12 @@
 package andre.chamis.healthproject.service;
 
-import andre.chamis.healthproject.domain.collaborator.dto.CreateCollaboratorDTO;
-import andre.chamis.healthproject.domain.collaborator.dto.GetCollaboratorDTO;
-import andre.chamis.healthproject.domain.collaborator.model.Collaborator;
-import andre.chamis.healthproject.domain.collaborator.repository.CollaboratorRepository;
-import andre.chamis.healthproject.domain.exception.BadArgumentException;
-import andre.chamis.healthproject.domain.request.PaginationInfo;
-import andre.chamis.healthproject.domain.response.ErrorMessage;
-import andre.chamis.healthproject.domain.response.PaginatedResponse;
+import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
+import andre.chamis.healthproject.domain.health.collaborator.model.Collaborator;
+import andre.chamis.healthproject.domain.health.collaborator.repository.CollaboratorRepository;
+import andre.chamis.healthproject.exception.BadArgumentException;
+import andre.chamis.healthproject.infra.request.request.PaginationInfo;
+import andre.chamis.healthproject.infra.request.response.ErrorMessage;
+import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.domain.user.model.User;
@@ -16,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -24,17 +22,7 @@ import java.util.Optional;
 public class CollaboratorService {
     private final CollaboratorRepository collaboratorRepository;
 
-    protected GetCollaboratorDTO addCollaboratorToPatient(Long patientId, CreateCollaboratorDTO createCollaboratorDTO) {
-        // TODO adding a collaborator to a patient is a user action (because it might register a new user, need to move it there
-        String email = createCollaboratorDTO.email();
-
-        log.info("Getting user with email [{}] or registering a new one!", email);
-
-        User user = userService.findUserByEmail(email).orElseGet(() -> {
-            log.warn("Creating a new user with email [{}]", email);
-            return userService.createUser(email, Optional.empty());
-        });
-
+    protected GetCollaboratorDTO addCollaboratorToPatient(User user, Long patientId) {
         log.debug("Checking if user [{}] already is collaborator of patient [{}]!", user.getUserId(), patientId);
 
         if (collaboratorRepository.existsByPatientIdAndUserId(patientId, user.getUserId())) {

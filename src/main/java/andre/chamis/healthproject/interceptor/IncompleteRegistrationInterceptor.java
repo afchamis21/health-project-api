@@ -2,8 +2,8 @@ package andre.chamis.healthproject.interceptor;
 
 
 import andre.chamis.healthproject.context.ServiceContext;
-import andre.chamis.healthproject.domain.exception.ForbiddenException;
-import andre.chamis.healthproject.domain.response.ErrorMessage;
+import andre.chamis.healthproject.exception.ForbiddenException;
+import andre.chamis.healthproject.infra.request.response.ErrorMessage;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,21 +1,22 @@
 package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.context.ServiceContext;
-import andre.chamis.healthproject.domain.attendance.dto.GetAttendanceDTO;
-import andre.chamis.healthproject.domain.exception.BadArgumentException;
-import andre.chamis.healthproject.domain.exception.ForbiddenException;
-import andre.chamis.healthproject.domain.patient.dto.CreatePatientDTO;
-import andre.chamis.healthproject.domain.patient.dto.GetPatientSummaryDTO;
+import andre.chamis.healthproject.domain.health.attendance.dto.GetAttendanceDTO;
+import andre.chamis.healthproject.domain.health.collaborator.dto.CreateCollaboratorDTO;
+import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
+import andre.chamis.healthproject.domain.health.patient.dto.CreatePatientDTO;
+import andre.chamis.healthproject.domain.health.patient.dto.GetPatientSummaryDTO;
 import andre.chamis.healthproject.domain.payment.dto.GetIsUserSubscriberResponse;
-import andre.chamis.healthproject.domain.request.PaginationInfo;
-import andre.chamis.healthproject.domain.response.ErrorMessage;
-import andre.chamis.healthproject.domain.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.*;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.domain.user.repository.UserRepository;
+import andre.chamis.healthproject.exception.BadArgumentException;
+import andre.chamis.healthproject.exception.ForbiddenException;
+import andre.chamis.healthproject.exception.ValidationException;
+import andre.chamis.healthproject.infra.request.request.PaginationInfo;
+import andre.chamis.healthproject.infra.request.response.ErrorMessage;
+import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
 import andre.chamis.healthproject.util.DateUtils;
-import andre.chamis.healthproject.util.ObjectUtils;
-import andre.chamis.healthproject.util.StringUtils;
 import com.stripe.model.Subscription;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Service class responsible for managing user-related operations.
@@ -105,121 +103,45 @@ public class UserService {
      * @return The created user entity.
      */
     public User createUser(String email, Optional<String> stripeClientId) {
-        if (!isEmailValid(email)) {
-            throw new BadArgumentException(ErrorMessage.INVALID_EMAIL);
+        try {
+            log.debug("Checking if user is already registered with email [{}]", email);
+            if (userRepository.existsByEmail(email)) {
+                log.error("User is already registered with email [{}]", email);
+                throw new BadArgumentException(ErrorMessage.USER_ALREADY_REGISTERED);
+            }
+            User user;
+            if (stripeClientId.isPresent()) {
+                user = new User(email, stripeClientId.get());
+            } else {
+                user = new User(email);
+            }
+
+            log.debug("User instantiated [{}]", user);
+
+            String otp = user.setOtp(OTP_LENGTH);
+
+            log.debug("Generated OTP for user [{}]", user.getEmail());
+
+            user = userRepository.save(user);
+
+            log.info("User [{}] saved to database", user.getEmail());
+
+            String emailMessage = """
+                    Olá aqui está a sua senha provisória para continuar o cadastro em nosso site!
+                                        
+                    {{OTP}}
+                                        
+                    Você será solicitado a mudar sua senha e atualizar as informações quando fizer login pela primeira vez!
+                    """.replace("{{OTP}}", otp);
+
+            emailService.sendSimpleMail(user.getEmail(), emailMessage, "Complete seu cadastro");
+
+            log.info("OTP Email sent to user [{}]", user.getEmail());
+
+            return user;
+        } catch (ValidationException ex) {
+            throw new BadArgumentException(ex.getError());
         }
-
-        log.debug("Checking if user is already registered with email [{}]", email);
-        if (userRepository.existsByEmail(email)) {
-            log.error("User is already registered with email [{}]", email);
-            throw new BadArgumentException(ErrorMessage.USER_ALREADY_REGISTERED);
-        }
-
-        User user = new User();
-
-        user.setEmail(email);
-        user.setUsername(email);
-        user.setCreateDt(Date.from(Instant.now()));
-        user.setRegistrationComplete(false);
-        user.setPaymentActive(false);
-        user.setActive(false);
-
-        stripeClientId.ifPresent(user::setStripeClientId);
-
-        log.debug("User instantiated [{}]", user);
-
-        String oneTimePassword = StringUtils.generateRandomString(OTP_LENGTH);
-        String hashedPassword = bCryptPasswordEncoder.encode(oneTimePassword);
-        user.setPassword(hashedPassword);
-
-        log.debug("Generated OTP for user [{}]", user.getEmail());
-
-        user = userRepository.save(user);
-
-        log.info("User [{}] saved to database", user.getEmail());
-
-        String emailMessage = """
-                Olá aqui está a sua senha provisória para continuar o cadastro em nosso site!
-                                
-                {{OTP}}
-                                
-                Você será solicitado a mudar sua senha e atualizar as informações quando fizer login pela primeira vez!
-                """.replace("{{OTP}}", oneTimePassword);
-
-        emailService.sendSimpleMail(user.getEmail(), emailMessage, "Complete seu cadastro");
-
-        log.info("OTP Email sent to user [{}]", user.getEmail());
-
-        return user;
-    }
-
-    /**
-     * Validates the format of a password. Must be non-space and at least 6 characters long.
-     *
-     * @param password The password to validate.
-     * @return True if the password is valid, otherwise false.
-     */
-    private boolean isPasswordValid(String password) {
-        if (password == null) {
-            return false;
-        }
-
-        if (password.length() < 8) {
-            return false;
-        }
-
-        if (!StringUtils.containsUpperCaseLetters(password)) {
-            return false;
-        }
-
-        if (!StringUtils.containsLowerCaseLetters(password)) {
-            return false;
-        }
-
-        if (!StringUtils.containsDigits(password)) {
-            return false;
-        }
-
-        if (!StringUtils.containsSpecialChars(password)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Validates the format of a username. Alphanumeric, hyphen, and underscore, at least 4 characters long.
-     *
-     * @param username The username to validate.
-     * @return True if the username is valid, otherwise false.
-     */
-    private boolean isUsernameValid(String username) {
-        if (username == null) {
-            return false;
-        }
-
-        String usernameRegex = "^[A-Za-z0-9_ -]+$";
-        Pattern pattern = Pattern.compile(usernameRegex);
-        Matcher matcher = pattern.matcher(username);
-
-        return username.length() > 4 && matcher.matches();
-    }
-
-    /**
-     * Validates the format of an email. Valid email format.
-     *
-     * @param email The email to validate.
-     * @return True if the email is valid, otherwise false.
-     */
-    private boolean isEmailValid(String email) {
-        if (email == null) {
-            return false;
-        }
-
-        String emailRegex = "^[A-Za-z0-9+_.-]+@([A-Za-z0-9-]+\\.)+[A-Za-z]{2,4}$";
-        Pattern pattern = Pattern.compile(emailRegex);
-        Matcher matcher = pattern.matcher(email);
-        return matcher.matches();
     }
 
     /**
@@ -306,44 +228,44 @@ public class UserService {
      * @throws BadArgumentException If any provided information is invalid (username, email, or password).
      */
     public GetUserDTO updateUser(UpdateUserDTO updateUserDTO) {
-        boolean updated = false;
-        boolean needsReauthentication = false;
-        User user = findCurrentUser();
+        try {
+            boolean updated = false;
+            boolean needsReauthentication = false;
+            User user = findCurrentUser();
 
-        log.info("Updating user [{}] with payload [{}]", user.getEmail(), updateUserDTO);
+            log.info("Updating user [{}] with payload [{}]", user.getEmail(), updateUserDTO);
 
-        String username = user.getUsername();
+            String username = user.getUsername();
 
-        if (updateUserDTO.username() != null && !updateUserDTO.username().isBlank()) {
-            if (!isUsernameValid(updateUserDTO.username())) {
-                throw new BadArgumentException(ErrorMessage.INVALID_USERNAME);
+            if (updateUserDTO.username() != null && !updateUserDTO.username().isBlank()) {
+                user.setUsername(updateUserDTO.username());
+                updated = true;
             }
-            user.setUsername(updateUserDTO.username());
-            updated = true;
-            log.debug("User [{}] updated username", user.getEmail());
+
+            if (updateUserDTO.password() != null && !updateUserDTO.password().isBlank()) {
+                user.setPassword(updateUserDTO.password(), updateUserDTO.confirmPassword());
+                updated = true;
+                needsReauthentication = true;
+                log.debug("User [{}] updated password", user.getEmail());
+            }
+
+            log.debug("Was user updated [{}]", updated);
+
+            if (updated) {
+                user = userRepository.save(user);
+            }
+
+            log.debug("User needs to be re-authenticated [{}]", needsReauthentication);
+
+            if (needsReauthentication) {
+                sessionService.deleteAllUserSessions();
+                refreshTokenService.deleteTokenByUsername(username);
+            }
+
+            return GetUserDTO.fromUser(user);
+        } catch (ValidationException e) {
+            throw new BadArgumentException(e.getError());
         }
-
-        if (updateUserDTO.password() != null && !updateUserDTO.password().isBlank()) {
-            setUserPassword(user, updateUserDTO.password(), updateUserDTO.confirmPassword());
-            updated = true;
-            needsReauthentication = true;
-            log.debug("User [{}] updated password", user.getEmail());
-        }
-
-        log.debug("Was user updated [{}]", updated);
-
-        if (updated) {
-            user = userRepository.save(user);
-        }
-
-        log.debug("User needs to be reauthenticated [{}]", needsReauthentication);
-
-        if (needsReauthentication) {
-            sessionService.deleteAllUserSessions();
-            refreshTokenService.deleteTokenByUsername(username);
-        }
-
-        return GetUserDTO.fromUser(user);
     }
 
     /**
@@ -355,54 +277,24 @@ public class UserService {
      */
     @Transactional
     public GetUserDTO handleCompleteRegistration(CompleteRegistrationDTO completeRegistrationDTO) {
-        if (ObjectUtils.areAnyPropertiesNull(completeRegistrationDTO)) {
-            throw new BadArgumentException(ErrorMessage.MISSING_INFORMATION);
+        try {
+            User user = findCurrentUser();
+
+            log.info("Attempting to complete registration for user [{}] with payload [{}]", user.getUserId(), completeRegistrationDTO);
+
+            user.completeRegistration(completeRegistrationDTO);
+
+            String username = user.getUsername();
+            sessionService.deleteCurrentSession();
+            refreshTokenService.deleteTokenByUsername(username);
+
+            log.info("User [{}] successfully activated", user.getEmail());
+
+            return GetUserDTO.fromUser(userRepository.save(user));
+        } catch (ValidationException ex) {
+            throw new BadArgumentException(ex.getError());
         }
-
-        User user = findCurrentUser();
-
-        log.info("Attempting to complete registration for user [{}] with payload [{}]", user.getUserId(), completeRegistrationDTO);
-
-        if (!isUsernameValid(completeRegistrationDTO.username())) {
-            throw new BadArgumentException(ErrorMessage.INVALID_USERNAME);
-        }
-        user.setUsername(completeRegistrationDTO.username());
-
-        setUserPassword(user, completeRegistrationDTO.password(), completeRegistrationDTO.confirmPassword());
-
-        String username = user.getUsername();
-        sessionService.deleteCurrentSession();
-        refreshTokenService.deleteTokenByUsername(username);
-
-        user.setRegistrationComplete(true);
-        user.setActive(true);
-
-        log.info("User [{}] successfully activated", user.getEmail());
-
-        return GetUserDTO.fromUser(userRepository.save(user));
     }
-
-    /**
-     * Sets the password for a user and validates its strength.
-     *
-     * @param user            The user for whom the password is being set.
-     * @param password        The new password.
-     * @param confirmPassword The confirmation of the new password.
-     * @throws BadArgumentException If the password is invalid or the confirmation doesn't match.
-     */
-    private void setUserPassword(User user, String password, String confirmPassword) {
-        if (!isPasswordValid(password)) {
-            throw new BadArgumentException(ErrorMessage.INVALID_PASSWORD);
-        }
-
-        if (!password.equals(confirmPassword)) {
-            throw new BadArgumentException(ErrorMessage.PASSWORDS_DONT_MATCH);
-        }
-
-        String hashedPassword = bCryptPasswordEncoder.encode(password);
-        user.setPassword(hashedPassword);
-    }
-
 
     /**
      * Activates a user with the given user ID.
@@ -454,9 +346,7 @@ public class UserService {
 
         users.forEach(user -> {
             log.info("Updated password for user [{}]", user.getEmail());
-            String newOTP = StringUtils.generateRandomString(OTP_LENGTH);
-            String hashedPassword = bCryptPasswordEncoder.encode(newOTP);
-            user.setPassword(hashedPassword);
+            String newOTP = user.setOtp(OTP_LENGTH);
 
             userRepository.save(user);
 
@@ -676,5 +566,24 @@ public class UserService {
         userRepository.save(user);
 
         return attendanceService.clockOut(user.getUserId());
+    }
+
+    public GetCollaboratorDTO addCollaboratorToPatient(CreateCollaboratorDTO createCollaboratorDTO) {
+        User currentUser = findCurrentUser();
+
+        if (!currentUser.isPaymentActive()) {
+            throw new ForbiddenException(ErrorMessage.PAID_USER_ONLY);
+        }
+
+        String collaboratorEmail = createCollaboratorDTO.email();
+
+        log.info("Getting user with email [{}] or registering a new one!", collaboratorEmail);
+
+        User collaborator = findUserByEmail(collaboratorEmail).orElseGet(() -> {
+            log.warn("Creating a new user with email [{}]", collaboratorEmail);
+            return createUser(collaboratorEmail, Optional.empty());
+        });
+
+        return patientService.addCollaborator(collaborator, createCollaboratorDTO.patientId());
     }
 }

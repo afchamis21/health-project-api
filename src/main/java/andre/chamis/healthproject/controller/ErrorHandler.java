@@ -2,9 +2,9 @@ package andre.chamis.healthproject.controller;
 
 
 import andre.chamis.healthproject.context.ServiceContext;
-import andre.chamis.healthproject.domain.exception.ExceptionWithStatusCode;
-import andre.chamis.healthproject.domain.response.ResponseMessage;
-import andre.chamis.healthproject.domain.response.ResponseMessageBuilder;
+import andre.chamis.healthproject.exception.ExceptionWithStatusCode;
+import andre.chamis.healthproject.infra.request.response.ResponseMessage;
+import andre.chamis.healthproject.infra.request.response.ResponseMessageBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

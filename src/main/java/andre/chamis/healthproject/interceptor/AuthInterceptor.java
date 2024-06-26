@@ -5,10 +5,10 @@ import andre.chamis.healthproject.context.ServiceContext;
 import andre.chamis.healthproject.domain.auth.annotation.ClientAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.NonAuthenticated;
-import andre.chamis.healthproject.domain.client.model.Client;
-import andre.chamis.healthproject.domain.exception.UnauthorizedException;
-import andre.chamis.healthproject.domain.response.ErrorMessage;
-import andre.chamis.healthproject.domain.session.model.Session;
+import andre.chamis.healthproject.domain.auth.client.model.Client;
+import andre.chamis.healthproject.exception.UnauthorizedException;
+import andre.chamis.healthproject.infra.request.response.ErrorMessage;
+import andre.chamis.healthproject.domain.auth.session.model.Session;
 import andre.chamis.healthproject.properties.AuthInterceptorProperties;
 import andre.chamis.healthproject.service.ClientService;
 import andre.chamis.healthproject.service.JwtService;
@@ -33,12 +33,11 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class AuthInterceptor implements HandlerInterceptor {
+    private static final String CLIENT_KEY_HEADER_NAME = "client-key";
     private final JwtService jwtService;
     private final ClientService clientService;
     private final SessionService sessionService;
     private final AuthInterceptorProperties authInterceptorProperties;
-
-    private static final String CLIENT_KEY_HEADER_NAME = "client-key";
 
     /**
      * Pre-handle method of the interceptor, responsible for enforcing authentication and authorization.
@@ -160,15 +159,6 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * Enumeration representing the types of authentication for requests.
-     */
-    private enum AuthType {
-        JWT_TOKEN,
-        CLIENT_AUTHENTICATED,
-        NON_AUTHENTICATED
-    }
-
-    /**
      * Determines the type of authentication required based on method annotations.
      *
      * @param handlerMethod The handler method being executed.
@@ -200,5 +190,14 @@ public class AuthInterceptor implements HandlerInterceptor {
         }
 
         return AuthType.JWT_TOKEN;
+    }
+
+    /**
+     * Enumeration representing the types of authentication for requests.
+     */
+    private enum AuthType {
+        JWT_TOKEN,
+        CLIENT_AUTHENTICATED,
+        NON_AUTHENTICATED
     }
 }

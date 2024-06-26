@@ -20,13 +20,13 @@ public class ServiceContextInterceptor implements HandlerInterceptor {
     /**
      * Pre-handle method that initializes the ServiceContext and logs the start of execution.
      *
-     * @param request The incoming HTTP request.
+     * @param request  The incoming HTTP request.
      * @param response The HTTP response.
-     * @param handler The handler for the request.
+     * @param handler  The handler for the request.
      * @return {@code true} to proceed with further processing.
      */
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response,@NonNull Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, @NonNull Object handler) {
         String executionId = request.getHeader(ServiceContext.EXECUTION_ID_KEY);
         ServiceContext context = ServiceContext.getContext(executionId);
         context.setStartTime(Instant.now());
@@ -46,18 +46,18 @@ public class ServiceContextInterceptor implements HandlerInterceptor {
     /**
      * After-completion method that logs execution details and clears the ServiceContext.
      *
-     * @param request The incoming HTTP request.
+     * @param request  The incoming HTTP request.
      * @param response The HTTP response.
-     * @param handler The handler for the request.
-     * @param ex The exception that occurred during processing (if any).
+     * @param handler  The handler for the request.
+     * @param ex       The exception that occurred during processing (if any).
      */
     @Override
-    public void afterCompletion(@NonNull HttpServletRequest request,@NonNull HttpServletResponse response,@NonNull Object handler, Exception ex)  {
+    public void afterCompletion(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler, Exception ex) {
         ServiceContext context = ServiceContext.getContext();
         context.setEndTime(Instant.now());
         Duration executionTime = Duration.between(context.getStartTime(), context.getEndTime());
-        for (Exception exception: context.getExceptions()){
-            log.error("An exception of type [{}] has occurred", exception.getClass().getSimpleName(), exception);
+        for (Exception exception : context.getExceptions()) {
+            log.error("An exception of type [{}] has occurred during the execution of [{}]", exception.getClass().getSimpleName(), request.getRequestURI(), exception);
         }
 
         log.info(

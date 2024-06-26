@@ -2,8 +2,8 @@ package andre.chamis.healthproject.service;
 
 
 import andre.chamis.healthproject.context.ServiceContext;
-import andre.chamis.healthproject.domain.session.model.Session;
-import andre.chamis.healthproject.domain.session.repository.SessionRepository;
+import andre.chamis.healthproject.domain.auth.session.model.Session;
+import andre.chamis.healthproject.domain.auth.session.repository.SessionRepository;
 import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.properties.SessionProperties;
 import andre.chamis.healthproject.util.DateUtils;

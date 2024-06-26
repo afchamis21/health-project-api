@@ -2,9 +2,9 @@ package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.domain.auth.dto.RefreshTokensDTO;
 import andre.chamis.healthproject.domain.auth.dto.TokensDTO;
-import andre.chamis.healthproject.domain.exception.UnauthorizedException;
-import andre.chamis.healthproject.domain.response.ErrorMessage;
-import andre.chamis.healthproject.domain.session.model.Session;
+import andre.chamis.healthproject.exception.UnauthorizedException;
+import andre.chamis.healthproject.infra.request.response.ErrorMessage;
+import andre.chamis.healthproject.domain.auth.session.model.Session;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.user.dto.LoginDTO;
 import andre.chamis.healthproject.domain.user.model.User;
