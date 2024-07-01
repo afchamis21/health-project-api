@@ -40,10 +40,10 @@ class PatientDAO extends PaginatedDAO<GetPatientSummaryDTO> {
 
     private String getSearchByNameAndCollaboratorIdQuery() {
         return """
-                SELECT p.patient_id, p.owner_id, p.create_dt, p.is_active, p.update_dt, p.patient_id, CONCAT(p.name, COALESCE(' ' || p.surname, '')) AS full_name
+                SELECT DISTINCT p.patient_id, p.owner_id, p.create_dt, p.is_active, p.update_dt, p.patient_id, CONCAT(p.name, COALESCE(' ' || p.surname, '')) AS full_name
                 FROM patients p
                     JOIN collaborator wu ON p.patient_id = wu.patient_id
-                WHERE (p.owner_id = :userId OR (wu.user_id = :userId AND wu.is_active = true))
+                WHERE ((p.owner_id = :userId AND wu.user_id = :userId) OR (wu.user_id = :userId AND wu.is_active = true AND p.is_active = true))
                   AND p.create_dt <= :now
                   AND CONCAT(p.name, COALESCE(' ' || p.surname, '')) ILIKE :name || '%'
                 """;
@@ -54,7 +54,7 @@ class PatientDAO extends PaginatedDAO<GetPatientSummaryDTO> {
                 SELECT COUNT(p.patient_id)
                 FROM patients p
                     JOIN collaborator wu ON p.patient_id = wu.patient_id
-                WHERE (p.owner_id = :userId OR (wu.user_id = :userId AND wu.is_active = true))
+                WHERE ((p.owner_id = :userId AND wu.user_id = :userId) OR (wu.user_id = :userId AND wu.is_active = true AND p.is_active = true))
                   AND CONCAT(p.name, COALESCE(' ' || p.surname, '')) ILIKE :name || '%'
                   AND p.create_dt <= :now
                 """;
@@ -62,20 +62,20 @@ class PatientDAO extends PaginatedDAO<GetPatientSummaryDTO> {
 
     private String getSearchByCollaboratorIdQuery() {
         return """
-                SELECT p.patient_id, p.owner_id, p.create_dt, p.is_active, p.update_dt, p.patient_id, CONCAT(p.name, COALESCE(' ' || p.surname, '')) AS full_name
+                SELECT DISTINCT p.patient_id, p.owner_id, p.create_dt, p.is_active, p.update_dt, p.patient_id, CONCAT(p.name, COALESCE(' ' || p.surname, '')) AS full_name
                 FROM patients p
                     JOIN collaborator wu ON p.patient_id = wu.patient_id
-                WHERE (p.owner_id = :userId OR (wu.user_id = :userId AND wu.is_active = true))
+                WHERE ((p.owner_id = :userId AND wu.user_id = :userId) OR (wu.user_id = :userId AND wu.is_active = true AND p.is_active = true))
                   AND p.create_dt <= :now
                 """;
     }
 
     private String getCountByCollaboratorIdQuery() {
         return """
-                SELECT COUNT(p.patient_id)
+                SELECT COUNT(DISTINCT p.patient_id)
                 FROM patients p
                     JOIN collaborator wu ON p.patient_id = wu.patient_id
-                WHERE (p.owner_id = :userId OR (wu.user_id = :userId AND wu.is_active = true))
+                WHERE ((p.owner_id = :userId AND wu.user_id = :userId) OR (wu.user_id = :userId AND wu.is_active = true AND p.is_active = true))
                   AND p.create_dt <= :now
                 """;
     }

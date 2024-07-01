@@ -58,18 +58,21 @@ public class User {
     /**
      * Indicates whether the user registration is complete or not.
      */
+    @Setter
     @Column(name = "is_registration_complete")
     private boolean isRegistrationComplete;
 
     /**
      * Indicates whether the user is active or not.
      */
+    @Setter
     @Column(name = "is_active")
     private boolean isActive;
 
     /**
      * Indicates whether the user has paid or not.
      */
+    @Setter
     @Column(name = "is_payment_active")
     private boolean isPaymentActive;
 
@@ -103,11 +106,14 @@ public class User {
 
     public User(String email) throws ValidationException {
         setEmail(email);
+
         setCreateDt(Date.from(Instant.now()));
         setRegistrationComplete(false);
         setPaymentActive(false);
         setActive(false);
+        setClockedIn(false);
 
+        this.username = email;
         this.email = email;
     }
 
@@ -115,18 +121,6 @@ public class User {
         this(email);
 
         this.stripeClientId = stripeClientId;
-    }
-
-    public void setActive(boolean b) {
-        this.isActive = b;
-    }
-
-    public void setPaymentActive(boolean b) {
-        this.isPaymentActive = b;
-    }
-
-    public void setRegistrationComplete(boolean b) {
-        this.isRegistrationComplete = b;
     }
 
     public void setUsername(String username) throws ValidationException {

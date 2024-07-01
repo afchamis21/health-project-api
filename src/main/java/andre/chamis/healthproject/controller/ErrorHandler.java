@@ -3,6 +3,7 @@ package andre.chamis.healthproject.controller;
 
 import andre.chamis.healthproject.context.ServiceContext;
 import andre.chamis.healthproject.exception.ExceptionWithStatusCode;
+import andre.chamis.healthproject.exception.InternalServerException;
 import andre.chamis.healthproject.infra.request.response.ResponseMessage;
 import andre.chamis.healthproject.infra.request.response.ResponseMessageBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,18 @@ public class ErrorHandler {
     }
 
     /**
+     * Handles HTTP message not readable exceptions.
+     *
+     * @param ex The exception to be handled.
+     * @return ResponseEntity containing the response message and HTTP status code 400 (Bad Request).
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ResponseMessage<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        ServiceContext.addException(ex);
+        return ResponseMessageBuilder.build(ex);
+    }
+
+    /**
      * Handles missing servlet request parameter exceptions.
      *
      * @param ex The exception to be handled.
@@ -57,14 +70,8 @@ public class ErrorHandler {
         return ResponseMessageBuilder.build(HttpStatus.NOT_FOUND);
     }
 
-    /**
-     * Handles HTTP message not readable exceptions.
-     *
-     * @param ex The exception to be handled.
-     * @return ResponseEntity containing the response message and HTTP status code 400 (Bad Request).
-     */
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ResponseMessage<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+    @ExceptionHandler(InternalServerException.class)
+    public ResponseEntity<ResponseMessage<Void>> handleInternalServerException(InternalServerException ex) {
         ServiceContext.addException(ex);
         return ResponseMessageBuilder.build(HttpStatus.BAD_REQUEST);
     }

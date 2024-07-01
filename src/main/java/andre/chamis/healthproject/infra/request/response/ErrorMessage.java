@@ -36,12 +36,13 @@ public enum ErrorMessage {
     PATIENT_NOT_FOUND("O paciente não foi encontrado!"),
     PATIENT_OWNERSHIP("Você deve ser responsável por esse paciente para fazer isso!"),
     SUBSCRIPTION_NOT_FOUND("Assinatura não encontrada!"),
-    UNKNOWN_ERROR("Um erro desconhecido ocorreu, tente novamente em alguns minutos"),
+    INTERNAL_SERVER_ERROR("Um erro desconhecido ocorreu! Contacte o time de suporte"),
     USER_ALREADY_COLLABORATOR("O usuário já está adicionado ao paciente!"),
     USER_ALREADY_HAS_OTP("Você já tem uma OTP, confira em seu email!"),
     USER_ALREADY_REGISTERED("Um usuário já está registrado com esse email!"),
-    USER_NOT_FOUND("Usuário não encontrado!");
-
+    USER_NOT_FOUND("Usuário não encontrado!"),
+    MISSING_PATIENT_CPF("O CPF do paciente é obrigatório!"),
+    INVALID_CPF("O cpf fornecido está inválido!");
     private final String message;
 
     /**

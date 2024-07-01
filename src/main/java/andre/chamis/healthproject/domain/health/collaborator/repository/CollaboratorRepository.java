@@ -2,9 +2,9 @@ package andre.chamis.healthproject.domain.health.collaborator.repository;
 
 import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
 import andre.chamis.healthproject.domain.health.collaborator.model.Collaborator;
+import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.infra.request.request.PaginationInfo;
 import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
-import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -25,7 +25,6 @@ public class CollaboratorRepository {
     }
 
     public PaginatedResponse<GetCollaboratorDTO> getAllCollaboratorsByPatientId(Long patientId, PaginationInfo paginationInfo) {
-        // TODO refactor dao method
         return collaboratorDAO.getAllCollaboratorsByPatientId(patientId, paginationInfo);
     }
 

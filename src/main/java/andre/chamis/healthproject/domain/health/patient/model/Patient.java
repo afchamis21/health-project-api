@@ -1,8 +1,8 @@
 package andre.chamis.healthproject.domain.health.patient.model;
 
+import andre.chamis.healthproject.domain.health.patient.dto.CreatePatientDTO;
 import andre.chamis.healthproject.domain.health.patient.dto.UpdatePatientDTO;
 import andre.chamis.healthproject.exception.ValidationException;
-import andre.chamis.healthproject.domain.health.patient.dto.CreatePatientDTO;
 import andre.chamis.healthproject.infra.request.response.ErrorMessage;
 import andre.chamis.healthproject.util.StringUtils;
 import jakarta.persistence.*;
@@ -39,6 +39,8 @@ public class Patient {
 
     private String rg;
 
+    private String cpf;
+
     @Column(name = "date_of_birth")
     private Date dateOfBirth;
 
@@ -54,7 +56,8 @@ public class Patient {
     public Patient(CreatePatientDTO createPatientDTO, Long ownerId) throws ValidationException {
         setName(createPatientDTO.name());
         setSurname(createPatientDTO.surname());
-        setRg(createPatientDTO.document());
+        setRg(createPatientDTO.rg());
+        setCpf(createPatientDTO.cpf());
         setGender(createPatientDTO.gender());
         setDateOfBirth(createPatientDTO.dateOfBirth());
         setContactPhone(createPatientDTO.contactPhone());
@@ -64,12 +67,12 @@ public class Patient {
     }
 
     public void setRg(String document) throws ValidationException {
-        validateDocument(document);
+        validateRg(document);
 
         this.rg = document;
     }
 
-    private void validateDocument(String document) throws ValidationException {
+    private void validateRg(String document) throws ValidationException {
         if (document == null || document.trim().isBlank()) {
             throw new ValidationException(ErrorMessage.MISSING_PATIENT_RG);
         }
@@ -101,6 +104,68 @@ public class Patient {
         }
 
         throw new ValidationException(ErrorMessage.INVALID_RG);
+    }
+
+    public void setCpf(String document) throws ValidationException {
+        validateCpf(document);
+
+        this.cpf = document;
+    }
+
+    private void validateCpf(String document) throws ValidationException {
+        if (document == null || document.trim().isBlank()) {
+            throw new ValidationException(ErrorMessage.MISSING_PATIENT_CPF);
+        }
+
+        String charsOnlyDocument = document.replaceAll("[^0-9]", "");
+
+        // Verify if RG has exactly 9 digits
+        if (charsOnlyDocument.length() != 11) {
+            throw new ValidationException(ErrorMessage.INVALID_CPF);
+        }
+
+        int firstVerificationDigit = calculateFirstCpfVerificationDigit(charsOnlyDocument);
+
+        if (firstVerificationDigit != Character.getNumericValue(charsOnlyDocument.charAt(9))) {
+            throw new ValidationException(ErrorMessage.INVALID_CPF);
+        }
+
+        int secondVerificationDigit = calculateSecondCpfVerificationDigit(charsOnlyDocument);
+        if (secondVerificationDigit != Character.getNumericValue(charsOnlyDocument.charAt(10))) {
+            throw new ValidationException(ErrorMessage.INVALID_CPF);
+        }
+    }
+
+    private int calculateSecondCpfVerificationDigit(String charsOnlyDocument) {
+        int sum = 0;
+        int aux = 0;
+        for (int i = 0; i < 10; i++) {
+            sum += Character.getNumericValue(charsOnlyDocument.charAt(i)) * aux;
+            aux++;
+        }
+
+        int verificationDigit = sum % 11;
+        if (verificationDigit == 10) {
+            verificationDigit = 0;
+        }
+
+        return verificationDigit;
+    }
+
+    private int calculateFirstCpfVerificationDigit(String charsOnlyDocument) {
+        int sum = 0;
+        int aux = 1;
+        for (int i = 0; i < 9; i++) {
+            sum += Character.getNumericValue(charsOnlyDocument.charAt(i)) * aux;
+            aux++;
+        }
+
+        int verificationDigit = sum % 11;
+        if (verificationDigit == 10) {
+            verificationDigit = 0;
+        }
+
+        return verificationDigit;
     }
 
     public void setName(String name) throws ValidationException {

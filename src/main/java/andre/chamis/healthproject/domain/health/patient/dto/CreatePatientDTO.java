@@ -6,7 +6,8 @@ import java.util.Date;
 
 public record CreatePatientDTO(String name,
                                String surname,
-                               String document,
+                               String rg,
+                               String cpf,
                                Gender gender,
                                String contactPhone,
                                Date dateOfBirth) {

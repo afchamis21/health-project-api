@@ -12,12 +12,16 @@ import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.domain.user.repository.UserRepository;
 import andre.chamis.healthproject.exception.BadArgumentException;
 import andre.chamis.healthproject.exception.ForbiddenException;
+import andre.chamis.healthproject.exception.InternalServerException;
 import andre.chamis.healthproject.exception.ValidationException;
 import andre.chamis.healthproject.infra.request.request.PaginationInfo;
 import andre.chamis.healthproject.infra.request.response.ErrorMessage;
 import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
 import andre.chamis.healthproject.util.DateUtils;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
 import com.stripe.model.Subscription;
+import com.stripe.param.CustomerUpdateParams;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -230,7 +234,7 @@ public class UserService {
     public GetUserDTO updateUser(UpdateUserDTO updateUserDTO) {
         try {
             boolean updated = false;
-            boolean needsReauthentication = false;
+            boolean needsReAuthentication = false;
             User user = findCurrentUser();
 
             log.info("Updating user [{}] with payload [{}]", user.getEmail(), updateUserDTO);
@@ -245,8 +249,21 @@ public class UserService {
             if (updateUserDTO.password() != null && !updateUserDTO.password().isBlank()) {
                 user.setPassword(updateUserDTO.password(), updateUserDTO.confirmPassword());
                 updated = true;
-                needsReauthentication = true;
+                needsReAuthentication = true;
                 log.debug("User [{}] updated password", user.getEmail());
+            }
+
+            if (updateUserDTO.email() != null && !updateUserDTO.email().isBlank()) {
+                user.setEmail(updateUserDTO.email());
+                updated = true;
+                needsReAuthentication = true;
+
+                Customer customer = Customer.retrieve(user.getStripeClientId());
+                CustomerUpdateParams params = CustomerUpdateParams.builder()
+                        .setEmail(updateUserDTO.email())
+                        .build();
+
+                customer.update(params);
             }
 
             log.debug("Was user updated [{}]", updated);
@@ -255,9 +272,9 @@ public class UserService {
                 user = userRepository.save(user);
             }
 
-            log.debug("User needs to be re-authenticated [{}]", needsReauthentication);
+            log.debug("User needs to be re-authenticated [{}]", needsReAuthentication);
 
-            if (needsReauthentication) {
+            if (needsReAuthentication) {
                 sessionService.deleteAllUserSessions();
                 refreshTokenService.deleteTokenByUsername(username);
             }
@@ -265,6 +282,8 @@ public class UserService {
             return GetUserDTO.fromUser(user);
         } catch (ValidationException e) {
             throw new BadArgumentException(e.getError());
+        } catch (StripeException e) {
+            throw new InternalServerException(ErrorMessage.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -545,7 +564,7 @@ public class UserService {
 
         log.info("Clocking in user at [{}]", patientId);
 
-        if (user.getClockedIn()) {
+        if (user.getClockedIn() != null) {
             attendanceService.clockOut(user.getUserId());
         }
 

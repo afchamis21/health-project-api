@@ -2,10 +2,10 @@ package andre.chamis.healthproject.domain.health.collaborator.repository;
 
 import andre.chamis.healthproject.dao.PaginatedDAO;
 import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
-import andre.chamis.healthproject.infra.request.request.PaginationInfo;
-import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
 import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
 import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
+import andre.chamis.healthproject.infra.request.request.PaginationInfo;
+import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -40,25 +40,24 @@ class CollaboratorDAO extends PaginatedDAO<GetCollaboratorDTO> {
 
     @Override
     protected String getSortColumnName() {
-        return "p.create_dt";
+        return "c.is_active";
     }
 
     protected String getSelectCollaboratorsByPatientIdQuery() {
         return """
-                SELECT p.is_active as is_collaborator_active, p.patient_id as patient_id,
-                p.create_dt as collaborator_create_dt, u.user_id, u.email, u.username,
-                u.is_registration_complete, u.is_payment_active, u.stripe_client_id, u.is_clocked_in, u.clocked_in_at
+                SELECT c.is_active as is_collaborator_active, c.patient_id as patient_id,
+                       c.create_dt as collaborator_create_dt, u.user_id, u.email, u.username,
+                       u.is_registration_complete, u.is_payment_active, u.stripe_client_id, u.is_clocked_in, u.clocked_in_at
                 FROM users u
-                    JOIN collaborators c ON c.user_id = u.user_id
-                    WHERE c.patientId = :patientId
-                        AND wu.create_dt <= :now
-                    ORDER BY wu.is_active DESC
+                         JOIN collaborator c ON c.user_id = u.user_id
+                WHERE c.patient_id = :patientId
+                  AND c.create_dt <= :now
                 """;
     }
 
     protected String getCountCollaboratorsByPatientIdQuery() {
         return """
-                SELECT COUNT(user_id) FROM patients WHERE patient_id = :patientId AND create_dt <= :now
+                SELECT COUNT(c.user_id) FROM collaborator c WHERE c.patient_id = :patientId AND c.create_dt <= :now
                 """;
     }
 
@@ -91,9 +90,9 @@ class CollaboratorDAO extends PaginatedDAO<GetCollaboratorDTO> {
         String query = """
                 SELECT u.username, u.user_id
                 FROM collaborator c
-                    JOIN users u ON wu.user_id = u.user_id
-                    JOIN patients p ON wu.patient_id = p.patient_id
-                    WHERE wu.patient_id = :patientId AND u.user_id != p.owner_id;
+                    JOIN users u ON c.user_id = u.user_id
+                    JOIN patients p ON c.patient_id = p.patient_id
+                    WHERE c.patient_id = :patientId AND u.user_id != p.owner_id;
                 """;
 
         Map<String, Object> params = new HashMap<>();

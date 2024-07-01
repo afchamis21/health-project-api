@@ -68,7 +68,7 @@ public class ResponseMessageBuilder {
      */
     public static ResponseEntity<ResponseMessage<Void>> build(Exception exception) {
         Metadata metadata = buildMetadata();
-        metadata.getMessages().add(ErrorMessage.UNKNOWN_ERROR.getMessage());
+        metadata.getMessages().add(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
 
         ResponseMessage<Void> responseMessage = new ResponseMessage<>();
         responseMessage.setMetadata(metadata);
