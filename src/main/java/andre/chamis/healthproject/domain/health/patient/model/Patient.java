@@ -19,7 +19,9 @@ import java.util.regex.Matcher;
 @Data
 @Entity
 @NoArgsConstructor
-@Table(name = "patients")
+@Table(name = "patients", indexes = {
+        @Index(name = "full_name_index", columnList = "surname")
+})
 public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +29,9 @@ public class Patient {
     private Long patientId;
     private String name;
     private String surname;
+
+    @Column(name = "full_name")
+    private String fullName;
 
     @Column(name = "contact_phone")
     private String contactPhone;
@@ -64,6 +69,9 @@ public class Patient {
         setCreateDt(Date.from(Instant.now()));
         setOwnerId(ownerId);
         setActive(true);
+
+        String[] names = new String[]{createPatientDTO.name(), createPatientDTO.surname()};
+        this.fullName = String.join(" ", names);
     }
 
     public void setRg(String document) throws ValidationException {
