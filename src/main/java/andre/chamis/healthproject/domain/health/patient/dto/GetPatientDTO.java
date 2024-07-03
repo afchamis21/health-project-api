@@ -8,17 +8,19 @@ import java.util.Date;
 public record GetPatientDTO(Long patientId,
                             String name,
                             String surname,
-                            String document,
+                            String rg,
+                            String cpf,
                             String contactPhone,
                             Gender gender,
-                            Date dateOfBirth) {
-
+                            Date dateOfBirth
+) {
     public static GetPatientDTO fromPatient(Patient patient) {
         return new GetPatientDTO(
                 patient.getPatientId(),
                 patient.getName(),
                 patient.getSurname(),
                 patient.getRg(),
+                patient.getCpf(),
                 patient.getContactPhone(),
                 patient.getGender(),
                 patient.getDateOfBirth()

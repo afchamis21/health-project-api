@@ -1,7 +1,6 @@
 package andre.chamis.healthproject.scheduled;
 
 
-import andre.chamis.healthproject.domain.user.repository.UserRepository;
 import andre.chamis.healthproject.service.RefreshTokenService;
 import andre.chamis.healthproject.service.SessionService;
 import andre.chamis.healthproject.service.UserService;
@@ -22,7 +21,6 @@ import java.time.Instant;
 public class ScheduledJobs {
     private final RefreshTokenService refreshTokenService;
     private final SessionService sessionService;
-    private final UserRepository userRepository;
     private final UserService userService;
 
     /**
@@ -66,21 +64,6 @@ public class ScheduledJobs {
         log.info(
                 "Updated [{} OTPs for users with incomplete registrations]. Execution tool [{} ms]",
                 updatedOTPs,
-                Duration.between(executionStart, executionEnd).toMillis()
-        );
-    }
-
-    /**
-     * Scheduled task to reset the user cache every two hours.
-     */
-    @Scheduled(cron = "0 0 */2 * * *")
-    public void resetCache() {
-        Instant executionStart = Instant.now();
-        int cachedUsers = userRepository.initializeCache();
-        Instant executionEnd = Instant.now();
-        log.info(
-                "Reset Cache with [{} users]. Execution took [{} ms]",
-                cachedUsers,
                 Duration.between(executionStart, executionEnd).toMillis()
         );
     }

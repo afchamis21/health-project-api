@@ -2,7 +2,7 @@ package andre.chamis.healthproject.domain.health.collaborator.repository;
 
 import andre.chamis.healthproject.dao.PaginatedDAO;
 import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
-import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
+import andre.chamis.healthproject.domain.user.dto.GetUserSummaryDTO;
 import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.infra.request.request.PaginationInfo;
 import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
@@ -46,8 +46,7 @@ class CollaboratorDAO extends PaginatedDAO<GetCollaboratorDTO> {
     protected String getSelectCollaboratorsByPatientIdQuery() {
         return """
                 SELECT c.is_active as is_collaborator_active, c.patient_id as patient_id,
-                       c.create_dt as collaborator_create_dt, u.user_id, u.email, u.username,
-                       u.is_registration_complete, u.is_payment_active, u.stripe_client_id, u.is_clocked_in, u.clocked_in_at
+                       c.create_dt as collaborator_create_dt, u.user_id, u.email, u.username
                 FROM users u
                          JOIN collaborator c ON c.user_id = u.user_id
                 WHERE c.patient_id = :patientId
@@ -70,15 +69,10 @@ class CollaboratorDAO extends PaginatedDAO<GetCollaboratorDTO> {
                         rs.getLong("patient_id"),
                         rs.getBoolean("is_collaborator_active"),
                         rs.getTimestamp("collaborator_create_dt"),
-                        new GetUserDTO(
+                        new GetUserSummaryDTO(
                                 rs.getLong("user_id"),
                                 rs.getString("username"),
-                                rs.getString("email"),
-                                rs.getBoolean("is_registration_complete"),
-                                rs.getBoolean("is_payment_active"),
-                                null != rs.getString("stripe_client_id"),
-                                rs.getBoolean("is_clocked_in"),
-                                rs.getLong("clocked_in_at")
+                                rs.getString("email")
                         )
                 ));
             }

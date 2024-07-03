@@ -7,8 +7,13 @@ import java.util.Date;
 /**
  * Represents a data transfer object (DTO) for retrieving summary information of a patient.
  */
-public record GetPatientSummaryDTO(Long patientId, String name, Long ownerId, boolean isActive,
-                                   Date createDt) {
+public record GetPatientSummaryDTO(
+        Long patientId,
+        String name,
+        Long ownerId,
+        boolean isActive,
+        Date createDt
+) {
 
     public static GetPatientSummaryDTO fromPatient(Patient patient) {
         return new GetPatientSummaryDTO(

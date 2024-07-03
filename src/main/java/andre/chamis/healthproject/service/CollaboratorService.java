@@ -3,13 +3,12 @@ package andre.chamis.healthproject.service;
 import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
 import andre.chamis.healthproject.domain.health.collaborator.model.Collaborator;
 import andre.chamis.healthproject.domain.health.collaborator.repository.CollaboratorRepository;
+import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
+import andre.chamis.healthproject.domain.user.model.User;
 import andre.chamis.healthproject.exception.BadArgumentException;
 import andre.chamis.healthproject.infra.request.request.PaginationInfo;
 import andre.chamis.healthproject.infra.request.response.ErrorMessage;
 import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
-import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
-import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
-import andre.chamis.healthproject.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -40,9 +39,8 @@ public class CollaboratorService {
 
         return new GetCollaboratorDTO(
                 patientId,
-                collaborator.isActive(),
-                collaborator.getCreateDt(),
-                GetUserDTO.fromUser(user)
+                collaborator,
+                user
         );
     }
 

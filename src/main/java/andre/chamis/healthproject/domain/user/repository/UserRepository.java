@@ -1,7 +1,6 @@
 package andre.chamis.healthproject.domain.user.repository;
 
 import andre.chamis.healthproject.domain.user.model.User;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -20,20 +19,6 @@ import java.util.Optional;
 public class UserRepository {
     private final UserJpaRepository userJpaRepository;
     private final UserInMemoryCache userInMemoryCache;
-
-    /**
-     * Initializes the in-memory cache with data from the database.
-     *
-     * @return The number of users loaded into the cache.
-     */
-    @PostConstruct
-    public int initializeCache() {
-        log.debug("Initializing cache");
-        List<User> users = userJpaRepository.findAll();
-        log.debug("Loaded [{}] users from database", users.size());
-        userInMemoryCache.initializeCache(users);
-        return userInMemoryCache.getSize();
-    }
 
     /**
      * Finds a user by their ID, first checking the in-memory cache, then the database.
