@@ -24,6 +24,8 @@ public class Collaborator {
     @Column(name = "user_id")
     private Long userId;
 
+    private String description;
+
     @Column(name = "create_dt")
     private Date createDt;
 
@@ -43,6 +45,7 @@ public class Collaborator {
                 "collaboratorId=" + collaboratorId +
                 ", patientId=" + patientId +
                 ", userId=" + userId +
+                ", description=" + description +
                 ", createDt=" + createDt +
                 ", active=" + active +
                 '}';

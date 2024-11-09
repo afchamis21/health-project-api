@@ -1,16 +1,17 @@
 package andre.chamis.healthproject.controller;
 
+import andre.chamis.healthproject.domain.auth.annotation.RequiresPaidSubscription;
 import andre.chamis.healthproject.domain.health.attendance.dto.GetAttendanceWithUsernameDTO;
 import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
 import andre.chamis.healthproject.domain.health.patient.dto.GetPatientDTO;
 import andre.chamis.healthproject.domain.health.patient.dto.GetPatientSummaryDTO;
 import andre.chamis.healthproject.domain.health.patient.dto.UpdatePatientDTO;
 import andre.chamis.healthproject.domain.health.patient.model.Patient;
+import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.infra.request.request.PaginationInfo;
 import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
 import andre.chamis.healthproject.infra.request.response.ResponseMessage;
 import andre.chamis.healthproject.infra.request.response.ResponseMessageBuilder;
-import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
 import andre.chamis.healthproject.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,7 @@ public class PatientController {
         return ResponseMessageBuilder.build(response, HttpStatus.OK);
     }
 
+    @RequiresPaidSubscription
     @PutMapping("")
     public ResponseEntity<ResponseMessage<GetPatientDTO>> updatePatient(
             @RequestParam Long patientId,
@@ -41,6 +43,7 @@ public class PatientController {
         return ResponseMessageBuilder.build(GetPatientDTO.fromPatient(patient), HttpStatus.OK);
     }
 
+    @RequiresPaidSubscription
     @DeleteMapping("")
     public ResponseEntity<ResponseMessage<Void>> deletePatient(@RequestParam Long patientId) {
         patientService.deletePatient(patientId);
@@ -52,12 +55,14 @@ public class PatientController {
         return ResponseMessageBuilder.build(patientService.getPatientSummaryDTOById(patientId), HttpStatus.OK);
     }
 
+    @RequiresPaidSubscription
     @PatchMapping("activate")
     public ResponseEntity<ResponseMessage<Void>> activatePatient(@RequestParam Long patientId) {
         patientService.activePatient(patientId);
         return ResponseMessageBuilder.build(HttpStatus.OK);
     }
 
+    @RequiresPaidSubscription
     @PatchMapping("deactivate")
     public ResponseEntity<ResponseMessage<Void>> deactivatePatient(@RequestParam Long patientId) {
         patientService.deactivatePatient(patientId);
@@ -91,12 +96,14 @@ public class PatientController {
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 
+    @RequiresPaidSubscription
     @PatchMapping("collaborators/activate")
     public ResponseEntity<ResponseMessage<Void>> activateCollaborator(@RequestParam Long patientId, @RequestParam Long userId) {
         patientService.activateCollaborator(patientId, userId);
         return ResponseMessageBuilder.build(HttpStatus.OK);
     }
 
+    @RequiresPaidSubscription
     @PatchMapping("collaborators/deactivate")
     public ResponseEntity<ResponseMessage<Void>> deactivateCollaborator(@RequestParam Long patientId, @RequestParam Long userId) {
         patientService.deactivateCollaborator(patientId, userId);

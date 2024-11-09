@@ -4,8 +4,7 @@ import andre.chamis.healthproject.domain.payment.subscription.model.UserSubscrip
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 
@@ -24,7 +23,7 @@ public class UserSubscriptionRepository {
      * @return The saved user subscription.
      */
     public UserSubscription save(UserSubscription userSubscription) {
-        userSubscription.setUpdateDt(Date.from(Instant.now()));
+        userSubscription.setUpdateDt(LocalDateTime.now());
         return subscriptionJpaRepository.save(userSubscription);
     }
 

@@ -1,20 +1,21 @@
 package andre.chamis.healthproject.controller;
 
-import andre.chamis.healthproject.domain.health.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.auth.annotation.ClientAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
+import andre.chamis.healthproject.domain.auth.annotation.RequiresPaidSubscription;
+import andre.chamis.healthproject.domain.health.attendance.dto.GetAttendanceDTO;
 import andre.chamis.healthproject.domain.health.collaborator.dto.CreateCollaboratorDTO;
 import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
+import andre.chamis.healthproject.domain.health.collaborator.dto.UpdateCollaboratorRequest;
 import andre.chamis.healthproject.domain.health.patient.dto.CreatePatientDTO;
 import andre.chamis.healthproject.domain.health.patient.dto.GetPatientSummaryDTO;
+import andre.chamis.healthproject.domain.user.dto.*;
 import andre.chamis.healthproject.infra.request.request.PaginationInfo;
 import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
 import andre.chamis.healthproject.infra.request.response.ResponseMessage;
 import andre.chamis.healthproject.infra.request.response.ResponseMessageBuilder;
-import andre.chamis.healthproject.domain.user.dto.CompleteRegistrationDTO;
-import andre.chamis.healthproject.domain.user.dto.CreateUserDTO;
-import andre.chamis.healthproject.domain.user.dto.GetUserDTO;
-import andre.chamis.healthproject.domain.user.dto.UpdateUserDTO;
+import andre.chamis.healthproject.service.CollaboratorService;
+import andre.chamis.healthproject.service.PatientService;
 import andre.chamis.healthproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,8 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final PatientService patientService;
+    private final CollaboratorService collaboratorService;
 
     /**
      * Endpoint for retrieving user information.
@@ -66,9 +69,9 @@ public class UserController {
      * @return A ResponseEntity containing a ResponseMessage with the updated user's information on success.
      */
     @PutMapping("update")
-    public ResponseEntity<ResponseMessage<GetUserDTO>> updateUser(@RequestBody UpdateUserDTO updateUserDTO) {
-        GetUserDTO getUserDTO = userService.updateUser(updateUserDTO);
-        return ResponseMessageBuilder.build(getUserDTO, HttpStatus.OK);
+    public ResponseEntity<ResponseMessage<UpdateUserResponse>> updateUser(@RequestBody UpdateUserDTO updateUserDTO) {
+        UpdateUserResponse updateUserResponse = userService.updateUser(updateUserDTO);
+        return ResponseMessageBuilder.build(updateUserResponse, HttpStatus.OK);
     }
 
     /**
@@ -90,7 +93,7 @@ public class UserController {
      * @return A ResponseEntity containing a ResponseMessage with the activated user's information on success.
      */
     @ClientAuthenticated
-    @PatchMapping("activate")
+    @PatchMapping("activate") // TODO should be admin authenticated or something
     public ResponseEntity<ResponseMessage<GetUserDTO>> activateUser(@RequestParam Long userId) {
         GetUserDTO getUserDTO = userService.activateUser(userId);
         return ResponseMessageBuilder.build(getUserDTO, HttpStatus.OK);
@@ -103,7 +106,7 @@ public class UserController {
      * @return A ResponseEntity containing a ResponseMessage with the deactivated user's information on success.
      */
     @ClientAuthenticated
-    @PatchMapping("deactivate")
+    @PatchMapping("deactivate") // TODO should be admin authenticated or something
     public ResponseEntity<ResponseMessage<GetUserDTO>> deactivateUser(@RequestParam Long userId) {
         GetUserDTO getUserDTO = userService.deactivateUser(userId);
         return ResponseMessageBuilder.build(getUserDTO, HttpStatus.OK);
@@ -116,7 +119,7 @@ public class UserController {
      * @return A ResponseEntity containing a ResponseMessage indicating success on deletion.
      */
     @ClientAuthenticated
-    @DeleteMapping("delete")
+    @DeleteMapping("delete") // TODO should be admin authenticated or something
     public ResponseEntity<ResponseMessage<Void>> deleteUser(@RequestParam Long userId) {
         userService.deleteUser(userId);
         return ResponseMessageBuilder.build(HttpStatus.OK);
@@ -144,10 +147,18 @@ public class UserController {
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
     }
 
+    @RequiresPaidSubscription
     @PostMapping("patient/collaborator")
     public ResponseEntity<ResponseMessage<GetCollaboratorDTO>> addCollaborator(@RequestBody CreateCollaboratorDTO createCollaboratorDTO) {
         GetCollaboratorDTO body = userService.addCollaboratorToPatient(createCollaboratorDTO);
         return ResponseMessageBuilder.build(body, HttpStatus.OK);
+    }
+
+    @RequiresPaidSubscription
+    @PutMapping("patient/collaborator")
+    public ResponseEntity<ResponseMessage<Void>> updateCollaborator(@RequestBody UpdateCollaboratorRequest updateCollaboratorRequest) {
+        collaboratorService.updateCollaborator(updateCollaboratorRequest);
+        return ResponseMessageBuilder.build(HttpStatus.OK);
     }
 
 

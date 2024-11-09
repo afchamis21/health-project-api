@@ -10,7 +10,9 @@ import java.util.Date;
  */
 @Data
 @Entity
-@Table(name = "refresh_tokens")
+@Table(name = "refresh_tokens", indexes = {
+        @Index(name = "token_index", columnList = "token")
+})
 public class RefreshTokenEntity {
     /**
      * Represents a refresh token entity for token-based authentication.

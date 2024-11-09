@@ -231,7 +231,7 @@ public class UserService {
      * @return A DTO representing the updated user information.
      * @throws BadArgumentException If any provided information is invalid (username, email, or password).
      */
-    public GetUserDTO updateUser(UpdateUserDTO updateUserDTO) {
+    public UpdateUserResponse updateUser(UpdateUserDTO updateUserDTO) {
         try {
             boolean updated = false;
             boolean needsReAuthentication = false;
@@ -241,7 +241,10 @@ public class UserService {
 
             String username = user.getUsername();
 
-            if (updateUserDTO.username() != null && !updateUserDTO.username().isBlank()) {
+            if (updateUserDTO.username() != null
+                    && !updateUserDTO.username().isBlank()
+                    && !updateUserDTO.username().equals(username)
+            ) {
                 user.setUsername(updateUserDTO.username());
                 updated = true;
             }
@@ -253,10 +256,19 @@ public class UserService {
                 log.debug("User [{}] updated password", user.getEmail());
             }
 
-            if (updateUserDTO.email() != null && !updateUserDTO.email().isBlank()) {
+            if (updateUserDTO.email() != null
+                    && !updateUserDTO.email().isBlank()
+                    && !updateUserDTO.email().equals(user.getEmail())
+            ) {
+                if (userRepository.existsByEmail(updateUserDTO.email())) {
+                    throw new BadArgumentException(ErrorMessage.USER_ALREADY_REGISTERED);
+                }
+
                 user.setEmail(updateUserDTO.email());
                 updated = true;
                 needsReAuthentication = true;
+
+                log.info("User updated email! Updating data on Stripe");
 
                 Customer customer = Customer.retrieve(user.getStripeClientId());
                 CustomerUpdateParams params = CustomerUpdateParams.builder()
@@ -264,6 +276,8 @@ public class UserService {
                         .build();
 
                 customer.update(params);
+
+                log.info("Stripe data updated!");
             }
 
             log.debug("Was user updated [{}]", updated);
@@ -279,10 +293,11 @@ public class UserService {
                 refreshTokenService.deleteTokenByUsername(username);
             }
 
-            return GetUserDTO.fromUser(user);
+            return new UpdateUserResponse(needsReAuthentication);
         } catch (ValidationException e) {
             throw new BadArgumentException(e.getError());
         } catch (StripeException e) {
+            log.error("Error updating stripe data", e);
             throw new InternalServerException(ErrorMessage.INTERNAL_SERVER_ERROR);
         }
     }
@@ -521,12 +536,6 @@ public class UserService {
     }
 
     public GetPatientSummaryDTO addPatient(CreatePatientDTO createPatientDTO) {
-        User user = findCurrentUser();
-
-        if (!user.isPaymentActive()) {
-            throw new ForbiddenException(ErrorMessage.PAID_USER_ONLY);
-        }
-
         return patientService.createPatient(createPatientDTO);
     }
 
@@ -588,12 +597,6 @@ public class UserService {
     }
 
     public GetCollaboratorDTO addCollaboratorToPatient(CreateCollaboratorDTO createCollaboratorDTO) {
-        User currentUser = findCurrentUser();
-
-        if (!currentUser.isPaymentActive()) {
-            throw new ForbiddenException(ErrorMessage.PAID_USER_ONLY);
-        }
-
         String collaboratorEmail = createCollaboratorDTO.email();
 
         log.info("Getting user with email [{}] or registering a new one!", collaboratorEmail);

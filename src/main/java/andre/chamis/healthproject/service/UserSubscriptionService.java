@@ -1,16 +1,19 @@
 package andre.chamis.healthproject.service;
 
-import andre.chamis.healthproject.exception.BadArgumentException;
-import andre.chamis.healthproject.infra.request.response.ErrorMessage;
 import andre.chamis.healthproject.domain.payment.subscription.enums.SubscriptionStatus;
 import andre.chamis.healthproject.domain.payment.subscription.model.UserSubscription;
 import andre.chamis.healthproject.domain.payment.subscription.repository.UserSubscriptionRepository;
+import andre.chamis.healthproject.exception.BadArgumentException;
+import andre.chamis.healthproject.infra.request.response.ErrorMessage;
 import andre.chamis.healthproject.util.DateUtils;
 import com.stripe.model.Subscription;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 
 /**
@@ -59,7 +62,7 @@ public class UserSubscriptionService {
                 .subscriptionId(subscription.getId())
                 .stripeClientId(subscription.getCustomer())
                 .status(SubscriptionStatus.fromString(subscription.getStatus()))
-                .createDt(DateUtils.getDateFromTimestamp(subscription.getStartDate()))
+                .createDt(LocalDateTime.ofInstant(Instant.ofEpochMilli(subscription.getStartDate()), ZoneId.systemDefault()))
                 .periodStart(DateUtils.getDateFromTimestamp(subscription.getCurrentPeriodStart()))
                 .periodEnd(DateUtils.getDateFromTimestamp(subscription.getCurrentPeriodEnd()))
                 .cancelAtPeriodEnd(subscription.getCancelAtPeriodEnd())

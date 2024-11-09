@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 /**
@@ -35,10 +36,10 @@ public class UserSubscription {
     private SubscriptionStatus status;
 
     @Column(name = "create_dt")
-    private Date createDt;
+    private LocalDateTime createDt;
 
     @Column(name = "update_dt")
-    private Date updateDt;
+    private LocalDateTime updateDt;
 
     @Column(name = "period_end")
     private Date periodEnd;

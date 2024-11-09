@@ -42,7 +42,9 @@ public enum ErrorMessage {
     USER_ALREADY_REGISTERED("Um usuário já está registrado com esse email!"),
     USER_NOT_FOUND("Usuário não encontrado!"),
     MISSING_PATIENT_CPF("O CPF do paciente é obrigatório!"),
-    INVALID_CPF("O cpf fornecido está inválido!");
+    INVALID_CPF("O cpf fornecido está inválido!"),
+    COLLABORATOR_NOT_FOUND("O usuário não é um colaborador desse paciente"),
+    MISSING_COLLABORATOR_DESCRIPTION("A descrição do colaborador é obrigatória!");
     private final String message;
 
     /**

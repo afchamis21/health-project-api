@@ -16,6 +16,7 @@ public class InterceptorsConfig implements WebMvcConfigurer {
     private final AuthInterceptor authInterceptor;
     private final ServiceContextInterceptor serviceContextInterceptor;
     private final IncompleteRegistrationInterceptor incompleteRegistrationInterceptor;
+    private final RequiresPaidSubscriptionInterceptor requiresPaidSubscriptionInterceptor;
 
     /**
      * Adds the AuthInterceptor and ServiceContextInterceptor to the global list of interceptors.
@@ -27,5 +28,6 @@ public class InterceptorsConfig implements WebMvcConfigurer {
         registry.addInterceptor(serviceContextInterceptor);
         registry.addInterceptor(authInterceptor);
         registry.addInterceptor(incompleteRegistrationInterceptor);
+        registry.addInterceptor(requiresPaidSubscriptionInterceptor);
     }
 }

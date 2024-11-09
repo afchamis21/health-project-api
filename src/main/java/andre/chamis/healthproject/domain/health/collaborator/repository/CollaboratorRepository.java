@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -42,5 +43,9 @@ public class CollaboratorRepository {
 
     public long deleteAllByPatientId(Long patientId) {
         return jpaRepository.deleteAllByPatientId(patientId);
+    }
+
+    public Optional<Collaborator> getByPatientIdAndUserId(Long patientId, Long userId) {
+        return jpaRepository.findByPatientIdAndUserId(patientId, userId);
     }
 }

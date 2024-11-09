@@ -19,9 +19,6 @@ import java.util.regex.Matcher;
 @Data
 @Entity
 @NoArgsConstructor
-@Table(name = "patients", indexes = {
-        @Index(name = "full_name_index", columnList = "surname")
-})
 public class Patient {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

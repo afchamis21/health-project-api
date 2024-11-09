@@ -1,6 +1,7 @@
 package andre.chamis.healthproject.service;
 
 import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
+import andre.chamis.healthproject.domain.health.collaborator.dto.UpdateCollaboratorRequest;
 import andre.chamis.healthproject.domain.health.collaborator.model.Collaborator;
 import andre.chamis.healthproject.domain.health.collaborator.repository.CollaboratorRepository;
 import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
@@ -71,5 +72,19 @@ public class CollaboratorService {
 
     public boolean isUserActiveCollaboratorOfPatient(Long patientId, Long userId) {
         return collaboratorRepository.existsByPatientIdAndUserIdAndIsActive(patientId, userId);
+    }
+
+    public void updateCollaborator(UpdateCollaboratorRequest updateCollaboratorRequest) {
+        if (updateCollaboratorRequest.description() == null || updateCollaboratorRequest.description().isBlank()) {
+            throw new BadArgumentException(ErrorMessage.MISSING_COLLABORATOR_DESCRIPTION);
+        }
+
+        Collaborator collaborator = collaboratorRepository.getByPatientIdAndUserId(updateCollaboratorRequest.patientId(), updateCollaboratorRequest.userId())
+                .orElseThrow(() -> new BadArgumentException(ErrorMessage.COLLABORATOR_NOT_FOUND));
+
+
+        collaborator.setDescription(updateCollaboratorRequest.description());
+
+        collaboratorRepository.save(collaborator);
     }
 }
