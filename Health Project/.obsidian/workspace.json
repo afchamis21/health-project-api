@@ -1,0 +1,178 @@
+{
+  "main": {
+    "id": "63b4c7a84586eec7",
+    "type": "split",
+    "children": [
+      {
+        "id": "8ca7e1063a041f90",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d4794c355440c4ba",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "caf53ca601ad3a4c",
+    "type": "split",
+    "children": [
+      {
+        "id": "a22670bd2d3c826e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "fe3e96a3be91879e",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "5bd29d6a68d87f56",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "d77ba0426cca148d",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "a76b185f733b3aee",
+    "type": "split",
+    "children": [
+      {
+        "id": "5d080906e34a1ae1",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "5dbd2e6475e8b558",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "43552a7018f56234",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "865b077752184a0f",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "e647ee2adfd5bc1d",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {},
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "d4794c355440c4ba",
+  "lastOpenFiles": [
+    "Entities/Auth/Refresh Token.md",
+    "Entities/Health/Untitled.md",
+    "Entities/Health/WIP/Patient Asset.md",
+    "Entities/Health/WIP/Asset.md",
+    "Entities/Health/WIP",
+    "Entities/Health/Attendance.md",
+    "Entities/Health/Collaborator.md",
+    "Entities/Health/Patient.md",
+    "Entities/Auth/Session.md",
+    "Entities/User/Subscription.md",
+    "Entities/User/User.md",
+    "Entities/Auth",
+    "Entities/Health",
+    "Entities/User",
+    "Untitled",
+    "Subscription",
+    "Welcome.md",
+    "Entities"
+  ]
+}

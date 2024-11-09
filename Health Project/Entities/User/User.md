@@ -1,0 +1,37 @@
+The user that utilizes the application
+
+---
+## Properties
+ - User ID
+	 - Auto generated value to identify on DB
+ - Stripe Client ID
+	 - The ID of the user that stripe uses to handle payment information.
+	 - Used to connect with the [[Subscription]] entity
+ - Username
+	 - The display name of the user inside of the application
+ - Email
+	 - The email to which we send all communications related to this account.
+	 - Used to login to the application
+ - Password
+	 - Password to login to the app
+	 - Stored on the db using bcrypt
+	 - 6 digit OTP that refreshes everyday, until the users completes registration
+ - Is Registration Complete
+	 - Whether the user has provided all required information to use the app
+		 - Username
+		 - Password
+ - Is Active
+	 - If set to false, the user will be prevented to do anything on the app
+	 - For admin purposes
+ - Is Payment Active
+	 - Whether the user is a paying customer, and can use premium functionalities
+	 - Needs to be updated in accordance to [[Subscription]]
+ - Clocked In
+	 - If the user is currently clocked in to any [[Patient]]
+	 - Generates an [[Attendance]]
+ - Clocked In At
+	 - Null, or the id of the [[Patient]] the user is clocked in to
+ - Create Date
+	 - When was the user registered to the app
+ - Update Date
+	 - When was the user data last updated

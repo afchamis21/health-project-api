@@ -15,7 +15,6 @@ import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
 import andre.chamis.healthproject.infra.request.response.ResponseMessage;
 import andre.chamis.healthproject.infra.request.response.ResponseMessageBuilder;
 import andre.chamis.healthproject.service.CollaboratorService;
-import andre.chamis.healthproject.service.PatientService;
 import andre.chamis.healthproject.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +33,6 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
-    private final PatientService patientService;
     private final CollaboratorService collaboratorService;
 
     /**

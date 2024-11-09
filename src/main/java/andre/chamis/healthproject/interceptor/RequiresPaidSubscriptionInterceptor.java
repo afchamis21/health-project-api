@@ -37,7 +37,7 @@ public class RequiresPaidSubscriptionInterceptor implements HandlerInterceptor {
      * @throws Exception if an error occurs during processing.
      */
     @Override
-    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
         // Skip if the handler is not a method (e.g., static resources)
         if (!(handler instanceof HandlerMethod handlerMethod)) {
             return true; // Proceed to the next interceptor or controller for non-handler methods

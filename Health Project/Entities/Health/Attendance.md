@@ -1,0 +1,1 @@
+Maps the [[User]] to a [[Patient]] to keep attendance history
