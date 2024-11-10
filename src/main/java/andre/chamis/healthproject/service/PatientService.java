@@ -5,20 +5,20 @@ import andre.chamis.healthproject.domain.health.attendance.dto.GetAttendanceWith
 import andre.chamis.healthproject.domain.health.collaborator.dto.GetCollaboratorDTO;
 import andre.chamis.healthproject.domain.health.collaborator.model.Collaborator;
 import andre.chamis.healthproject.domain.health.collaborator.repository.CollaboratorRepository;
-import andre.chamis.healthproject.exception.BadArgumentException;
-import andre.chamis.healthproject.exception.ForbiddenException;
-import andre.chamis.healthproject.exception.ValidationException;
 import andre.chamis.healthproject.domain.health.patient.dto.CreatePatientDTO;
 import andre.chamis.healthproject.domain.health.patient.dto.GetPatientDTO;
 import andre.chamis.healthproject.domain.health.patient.dto.GetPatientSummaryDTO;
 import andre.chamis.healthproject.domain.health.patient.dto.UpdatePatientDTO;
 import andre.chamis.healthproject.domain.health.patient.model.Patient;
 import andre.chamis.healthproject.domain.health.patient.repository.PatientRepository;
+import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
+import andre.chamis.healthproject.domain.user.model.User;
+import andre.chamis.healthproject.exception.BadArgumentException;
+import andre.chamis.healthproject.exception.ForbiddenException;
+import andre.chamis.healthproject.exception.ValidationException;
 import andre.chamis.healthproject.infra.request.request.PaginationInfo;
 import andre.chamis.healthproject.infra.request.response.ErrorMessage;
 import andre.chamis.healthproject.infra.request.response.PaginatedResponse;
-import andre.chamis.healthproject.domain.user.dto.GetUsernameAndIdDTO;
-import andre.chamis.healthproject.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
@@ -192,10 +192,10 @@ public class PatientService {
         return collaboratorService.getAllCollaboratorNamesOfPatient(patientId);
     }
 
-    public GetCollaboratorDTO addCollaborator(User user, Long patientId) {
+    public GetCollaboratorDTO addCollaborator(User user, Long patientId, String description) {
         checkPatientOwnershipOrThrow(patientId);
 
-        return collaboratorService.addCollaboratorToPatient(user, patientId);
+        return collaboratorService.addCollaboratorToPatient(user, patientId, description);
     }
 
     public void activateCollaborator(Long patientId, Long userId) {

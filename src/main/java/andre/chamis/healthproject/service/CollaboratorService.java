@@ -22,7 +22,7 @@ import java.util.List;
 public class CollaboratorService {
     private final CollaboratorRepository collaboratorRepository;
 
-    protected GetCollaboratorDTO addCollaboratorToPatient(User user, Long patientId) {
+    protected GetCollaboratorDTO addCollaboratorToPatient(User user, Long patientId, String description) {
         log.debug("Checking if user [{}] already is collaborator of patient [{}]!", user.getUserId(), patientId);
 
         if (collaboratorRepository.existsByPatientIdAndUserId(patientId, user.getUserId())) {
@@ -33,6 +33,8 @@ public class CollaboratorService {
         log.debug("Check passed!");
 
         Collaborator collaborator = new Collaborator(patientId, user.getUserId());
+        collaborator.setDescription(description);
+
         log.debug("Created collaborator [{}]", collaborator);
 
         collaboratorRepository.save(collaborator);

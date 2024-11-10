@@ -6,8 +6,9 @@ import andre.chamis.healthproject.domain.user.model.User;
 
 import java.util.Date;
 
-public record GetCollaboratorDTO(Long patientId, boolean isCollaboratorActive, Date createDt, GetUserSummaryDTO user) {
+public record GetCollaboratorDTO(Long patientId, boolean isCollaboratorActive, String description, Date createDt,
+                                 GetUserSummaryDTO user) {
     public GetCollaboratorDTO(Long patientId, Collaborator collaborator, User user) {
-        this(patientId, collaborator.isActive(), collaborator.getCreateDt(), GetUserSummaryDTO.fromUser(user));
+        this(patientId, collaborator.isActive(), collaborator.getDescription(), collaborator.getCreateDt(), GetUserSummaryDTO.fromUser(user));
     }
 }

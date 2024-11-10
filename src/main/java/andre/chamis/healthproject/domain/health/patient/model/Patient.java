@@ -18,6 +18,7 @@ import java.util.regex.Matcher;
  */
 @Data
 @Entity
+@Table(name = "patients")
 @NoArgsConstructor
 public class Patient {
     @Id

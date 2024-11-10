@@ -45,7 +45,7 @@ class CollaboratorDAO extends PaginatedDAO<GetCollaboratorDTO> {
 
     protected String getSelectCollaboratorsByPatientIdQuery() {
         return """
-                SELECT c.is_active as is_collaborator_active, c.patient_id as patient_id,
+                SELECT c.is_active as is_collaborator_active, c.description, c.patient_id as patient_id,
                        c.create_dt as collaborator_create_dt, u.user_id, u.email, u.username
                 FROM users u
                          JOIN collaborator c ON c.user_id = u.user_id
@@ -68,6 +68,7 @@ class CollaboratorDAO extends PaginatedDAO<GetCollaboratorDTO> {
                 results.add(new GetCollaboratorDTO(
                         rs.getLong("patient_id"),
                         rs.getBoolean("is_collaborator_active"),
+                        rs.getString("description"),
                         rs.getTimestamp("collaborator_create_dt"),
                         new GetUserSummaryDTO(
                                 rs.getLong("user_id"),

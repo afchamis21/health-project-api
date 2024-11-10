@@ -606,6 +606,6 @@ public class UserService {
             return createUser(collaboratorEmail, Optional.empty());
         });
 
-        return patientService.addCollaborator(collaborator, createCollaboratorDTO.patientId());
+        return patientService.addCollaborator(collaborator, createCollaboratorDTO.patientId(), createCollaboratorDTO.description());
     }
 }
