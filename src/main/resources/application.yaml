@@ -6,11 +6,6 @@ logging:
     console: '%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} [%X{execution-id}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}'
 
 spring:
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-
   mail:
     username: ${SMTP_USERNAME}
     password: ${SMTP_PASSWORD}

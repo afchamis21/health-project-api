@@ -608,4 +608,12 @@ public class UserService {
 
         return patientService.addCollaborator(collaborator, createCollaboratorDTO.patientId(), createCollaboratorDTO.description());
     }
+
+    public boolean existsByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+
+        return userRepository.existsByEmail(email);
+    }
 }

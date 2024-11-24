@@ -21,6 +21,13 @@ spring:
             required: true
 
 auth:
+  otp:
+    login:
+      duration: 1
+      unit: days
+    forgot-password:
+      duration: 1
+      unit: hours
   jwt:
     user:
       access-token:

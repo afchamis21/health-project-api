@@ -3,6 +3,8 @@ package andre.chamis.healthproject.controller;
 
 import andre.chamis.healthproject.domain.auth.annotation.ClientAuthenticated;
 import andre.chamis.healthproject.domain.auth.annotation.JwtAuthenticated;
+import andre.chamis.healthproject.domain.auth.annotation.NonAuthenticated;
+import andre.chamis.healthproject.domain.auth.dto.ForgotPasswordRequest;
 import andre.chamis.healthproject.domain.auth.dto.RefreshTokensDTO;
 import andre.chamis.healthproject.domain.auth.dto.TokensDTO;
 import andre.chamis.healthproject.infra.request.response.ResponseMessage;
@@ -63,4 +65,13 @@ public class AuthController {
         authorizationService.logout();
         return ResponseMessageBuilder.build(HttpStatus.OK);
     }
+
+    @NonAuthenticated
+    @PostMapping("forgot-password")
+    public ResponseEntity<ResponseMessage<Void>> handleForgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest) {
+        authorizationService.handleForgotPassword(forgotPasswordRequest);
+        
+        return ResponseMessageBuilder.build(HttpStatus.OK);
+    }
+    
 }

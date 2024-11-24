@@ -1,7 +1,10 @@
 package andre.chamis.healthproject.service;
 
+import andre.chamis.healthproject.domain.auth.dto.ForgotPasswordRequest;
 import andre.chamis.healthproject.domain.auth.dto.RefreshTokensDTO;
 import andre.chamis.healthproject.domain.auth.dto.TokensDTO;
+import andre.chamis.healthproject.domain.auth.model.ForgotPasswordToken;
+import andre.chamis.healthproject.domain.auth.repository.ForgotPasswordTokenRepository;
 import andre.chamis.healthproject.exception.UnauthorizedException;
 import andre.chamis.healthproject.infra.request.response.ErrorMessage;
 import andre.chamis.healthproject.domain.auth.session.model.Session;
@@ -28,6 +31,8 @@ public class AuthorizationService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final SessionService sessionService;
+    private final EmailService emailService;
+    private final ForgotPasswordTokenRepository forgotPasswordTokenRepository;
 
     /**
      * Authenticates a user and generates access and refresh tokens.
@@ -79,8 +84,7 @@ public class AuthorizationService {
         Date refreshTokenExpirationDate = jwtService.getTokenExpiresAt(refreshToken);
         Duration durationUntilRefreshTokenExpires = Duration.between(
                 Instant.now(),
-                refreshTokenExpirationDate.toInstant()
-        );
+                refreshTokenExpirationDate.toInstant());
 
         if (durationUntilRefreshTokenExpires.toHours() <= 2) {
             log.info("User Refresh Token was about to expire, creating a new one!");
@@ -123,5 +127,29 @@ public class AuthorizationService {
         refreshTokenService.saveTokenToDatabase(refreshToken);
 
         return new TokensDTO(accessToken, refreshToken, user);
+    }
+
+    public void handleForgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
+        if (!userService.existsByEmail(forgotPasswordRequest.email())) {
+            return;
+        }
+
+        var result = forgotPasswordTokenRepository.findTokenByEmail(forgotPasswordRequest.email());
+
+        result.ifPresentOrElse((token) -> {
+            handleUpdateForgotPasswordToken(token);
+        }, () -> {
+            handleCreateForgotPasswordToken(forgotPasswordRequest);
+        });
+    }
+
+    private void handleCreateForgotPasswordToken(ForgotPasswordRequest forgotPasswordRequest) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleCreateForgotPasswordToken'");
+    }
+
+    private void handleUpdateForgotPasswordToken(ForgotPasswordToken token) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleCreateForgotPasswordToken'");
     }
 }

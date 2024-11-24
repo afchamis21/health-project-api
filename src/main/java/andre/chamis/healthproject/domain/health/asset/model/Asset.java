@@ -1,4 +1,4 @@
-package andre.chamis.healthproject.domain.health.asset;
+package andre.chamis.healthproject.domain.health.asset.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
