@@ -36,7 +36,7 @@ public class ResponseMessageBuilder {
      * @param httpStatus The HTTP status to include in the response.
      * @return A response entity containing the response message.
      */
-    public static <Void> ResponseEntity<ResponseMessage<Void>> build(HttpStatus httpStatus) {
+    public static ResponseEntity<ResponseMessage<Void>> build(HttpStatus httpStatus) {
         Metadata metadata = buildMetadata();
 
         ResponseMessage<Void> responseMessage = new ResponseMessage<>();

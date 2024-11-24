@@ -3,8 +3,10 @@ package andre.chamis.healthproject.interceptor;
 import andre.chamis.healthproject.context.ServiceContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -26,7 +28,7 @@ public class ServiceContextInterceptor implements HandlerInterceptor {
      * @return {@code true} to proceed with further processing.
      */
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, @NonNull Object handler) {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
         String executionId = request.getHeader(ServiceContext.EXECUTION_ID_KEY);
         ServiceContext context = ServiceContext.getContext(executionId);
         context.setStartTime(Instant.now());
@@ -52,7 +54,7 @@ public class ServiceContextInterceptor implements HandlerInterceptor {
      * @param ex       The exception that occurred during processing (if any).
      */
     @Override
-    public void afterCompletion(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler, Exception ex) {
+    public void afterCompletion(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler, @Nullable Exception ex) {
         ServiceContext context = ServiceContext.getContext();
         context.setEndTime(Instant.now());
         Duration executionTime = Duration.between(context.getStartTime(), context.getEndTime());
